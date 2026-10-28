@@ -1,0 +1,6 @@
+{
+  "name": "JANLEY STORE — Impressão 3D",
+  "description": "Loja online oficial da Janley Store. Peças únicas, funcionais e personalizadas com tecnologia de impressão 3D em Guimarães, Portugal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
