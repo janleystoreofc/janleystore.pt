@@ -45,10 +45,22 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
             {/* Left: Product Image */}
             <div className="md:col-span-6 relative aspect-square rounded-2xl overflow-hidden bg-[#faf4f2] border border-[#fae4e1]">
               <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-full object-cover"
+                src={
+                  selectedColor.sampleImage && (product.id === 'vaso-decorativo' || selectedColor.sampleImage)
+                    ? selectedColor.sampleImage
+                    : product.image
+                }
+                alt={`${product.name} em ${selectedColor.name}`}
+                className="w-full h-full object-cover transition-all duration-300"
               />
+
+              {/* Special Tag for Gradient / Marble / Yellow Gold */}
+              {(selectedColor.isGradient || selectedColor.isMarble) && (
+                <span className="absolute bottom-3 left-3 bg-black/80 backdrop-blur-xs text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md">
+                  {selectedColor.name}
+                </span>
+              )}
+
               <button
                 type="button"
                 onClick={() => toggleFavorite(product.id)}
@@ -99,10 +111,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
               {/* Color Selection */}
               <div className="pt-2 border-t border-[#fae2dc]">
-                <label className="block text-xs font-bold text-[#33221e] mb-2">
-                  Cor do Filamento: <span className="font-normal text-[#f43f7a]">{selectedColor.name}</span>
-                </label>
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold text-[#33221e]">
+                    Cor do Filamento: <span className="font-semibold text-[#f43f7a]">{selectedColor.name}</span>
+                  </label>
+                  <span className="text-[11px] text-[#8c6760] font-medium">
+                    {product.colors.length} cores disponíveis
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 max-h-24 overflow-y-auto p-1 bg-[#faf6f4] rounded-xl border border-[#fae4e1] custom-scroll">
                   {product.colors.map((color) => {
                     const isSelected = selectedColor.name === color.name;
                     return (
@@ -111,15 +129,15 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                         type="button"
                         onClick={() => setSelectedColor(color)}
                         title={color.name}
-                        className={`w-7 h-7 rounded-full border transition-all cursor-pointer flex items-center justify-center ${
+                        className={`w-7 h-7 rounded-full border transition-all cursor-pointer flex items-center justify-center relative flex-shrink-0 ${
                           isSelected
-                            ? 'ring-2 ring-[#f43f7a] ring-offset-2 scale-110 border-transparent shadow-xs'
-                            : 'border-black/15 hover:scale-105'
+                            ? 'ring-2 ring-[#f43f7a] ring-offset-2 scale-110 border-white shadow-xs z-10'
+                            : 'border-black/15 hover:scale-108 hover:border-[#f43f7a]/50'
                         }`}
-                        style={{ backgroundColor: color.hex }}
+                        style={{ background: color.gradient || color.hex }}
                       >
                         {isSelected && (
-                          <Check className={`w-3.5 h-3.5 ${color.hex === '#fdf9f4' || color.hex === '#ffffff' ? 'text-black' : 'text-white'}`} />
+                          <Check className={`w-3.5 h-3.5 ${color.hex === '#fdf9f4' || color.hex === '#ffffff' || color.isMarble ? 'text-black' : 'text-white'}`} strokeWidth={2.8} />
                         )}
                       </button>
                     );

@@ -1,6 +1,10 @@
 export interface ProductColor {
   name: string;
   hex: string;
+  gradient?: string;
+  isGradient?: boolean;
+  isMarble?: boolean;
+  sampleImage?: string;
 }
 
 export interface Product {

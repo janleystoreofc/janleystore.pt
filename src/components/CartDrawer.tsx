@@ -149,7 +149,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) =
                   {/* Item Image */}
                   <div className="w-20 h-20 rounded-lg overflow-hidden bg-[#faf4f2] flex-shrink-0 border border-[#fae4e1]">
                     <img
-                      src={item.product.image}
+                      src={
+                        (item.selectedColor.sampleImage && (item.product.id === 'vaso-decorativo' || item.selectedColor.sampleImage))
+                          ? item.selectedColor.sampleImage
+                          : item.product.image
+                      }
                       alt={item.product.name}
                       className="w-full h-full object-cover"
                     />
@@ -174,8 +178,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) =
                       {/* Color Tag */}
                       <div className="flex items-center gap-1.5 mt-1 text-xs text-[#735953]">
                         <span
-                          className="w-3 h-3 rounded-full border border-black/10 flex-shrink-0"
-                          style={{ backgroundColor: item.selectedColor.hex }}
+                          className="w-3 h-3 rounded-full border border-black/15 flex-shrink-0"
+                          style={{ background: item.selectedColor.gradient || item.selectedColor.hex }}
                         />
                         <span className="truncate">{item.selectedColor.name}</span>
                       </div>

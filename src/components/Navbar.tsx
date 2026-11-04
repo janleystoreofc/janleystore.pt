@@ -11,6 +11,7 @@ interface NavbarProps {
   onOpenCustomModal: () => void;
   onOpenAbout: () => void;
   onOpenContact: () => void;
+  onOpenOrderTracking?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -21,6 +22,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenCustomModal,
   onOpenAbout,
   onOpenContact,
+  onOpenOrderTracking,
 }) => {
   const { totalItemsCount, setIsCartOpen, favorites } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -30,7 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#f3e5e1]/60 shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 md:h-22">
+        <div className="flex items-center justify-between h-22 md:h-24">
           {/* Left: Brand Logo */}
           <div className="flex-shrink-0 flex items-center">
             <button
@@ -38,13 +40,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setActiveTab('inicio');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="flex items-center gap-2 text-left group focus:outline-hidden"
+              className="flex items-center gap-2 text-left group focus:outline-hidden py-1"
               aria-label="Janley Store - Página Inicial"
             >
               <img
                 src="/assets/aistudio/LOGO_JANLEY_ofc.pdf_52899af3.png"
                 alt="JANLEY STORE - Impressão 3D"
-                className="h-14 sm:h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-102"
+                className="h-16 sm:h-20 md:h-22 w-auto max-h-[88px] object-contain transition-transform duration-300 group-hover:scale-102"
               />
             </button>
           </div>
@@ -170,6 +172,24 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             <button
+              onClick={() => {
+                setActiveTab('orcamento');
+                const el = document.getElementById('orcamento-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className={`transition-colors cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'orcamento'
+                  ? 'text-[#f43f7a] font-bold'
+                  : 'hover:text-[#f43f7a]'
+              }`}
+            >
+              <span className="relative">
+                Orçamento
+                <span className="absolute -top-1 -right-2 w-1.5 h-1.5 rounded-full bg-[#f43f7a]" />
+              </span>
+            </button>
+
+            <button
               onClick={onOpenAbout}
               className="hover:text-[#f43f7a] transition-colors cursor-pointer"
             >
@@ -182,6 +202,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               Contacto
             </button>
+
+            {onOpenOrderTracking && (
+              <button
+                onClick={onOpenOrderTracking}
+                className="text-xs font-bold uppercase tracking-wider text-[#f43f7a] bg-[#fdedea] hover:bg-[#fbdad2] px-3 py-1.5 rounded-full transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <span>Rastrear 3D</span>
+              </button>
+            )}
           </nav>
 
           {/* Right: Actions (Search, User, Cart) */}
@@ -276,6 +305,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
           <button
             onClick={() => {
+              setActiveTab('orcamento');
+              setMobileMenuOpen(false);
+              const el = document.getElementById('orcamento-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="block w-full text-left py-2 font-bold text-base text-[#f43f7a]"
+          >
+            ✨ Pedir Orçamento 3D
+          </button>
+          <button
+            onClick={() => {
               setMobileMenuOpen(false);
               onOpenAbout();
             }}
@@ -292,6 +332,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             Contacto
           </button>
+          {onOpenOrderTracking && (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenOrderTracking();
+              }}
+              className="block w-full text-left py-2 font-bold text-base text-[#f43f7a]"
+            >
+              Rastrear Encomenda 3D
+            </button>
+          )}
         </div>
       )}
     </header>

@@ -1,18 +1,31 @@
 import React from 'react';
-import { Truck, Phone, Mail, Instagram } from 'lucide-react';
+import { Truck, Phone, Mail, Instagram, PackageSearch } from 'lucide-react';
 
 interface TopBarProps {
   onOpenContact?: () => void;
+  onOpenOrderTracking?: () => void;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ onOpenContact }) => {
+export const TopBar: React.FC<TopBarProps> = ({ onOpenContact, onOpenOrderTracking }) => {
   return (
     <div className="bg-[#fdedea] text-[#6b3f37] text-xs py-2 px-4 sm:px-6 lg:px-8 border-b border-[#fbdad2]/50 transition-colors">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-        {/* Left: Free delivery notice */}
-        <div className="flex items-center gap-2 font-medium tracking-wide">
-          <Truck className="w-4 h-4 text-[#f43f7a]" />
-          <span>Entregamos em todo Portugal</span>
+        {/* Left: Free delivery notice & tracking quick link */}
+        <div className="flex items-center gap-4 font-medium tracking-wide">
+          <div className="flex items-center gap-2">
+            <Truck className="w-4 h-4 text-[#f43f7a]" />
+            <span>Guimarães, Braga • Entregas CTT, Uber ou Recolha em todo Portugal</span>
+          </div>
+
+          {onOpenOrderTracking && (
+            <button
+              onClick={onOpenOrderTracking}
+              className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-bold text-[#f43f7a] hover:text-[#d11c58] hover:underline cursor-pointer bg-white/70 px-2.5 py-0.5 rounded-full border border-[#f5cfc7] shadow-2xs"
+            >
+              <PackageSearch className="w-3.5 h-3.5" />
+              <span>Rastrear Encomenda</span>
+            </button>
+          )}
         </div>
 
         {/* Right: Direct contacts & Socials */}
@@ -37,20 +50,22 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenContact }) => {
 
           <div className="flex items-center gap-2.5 pl-2 border-l border-[#ecd0c9]">
             <a
-              href="https://www.instagram.com/janleystore"
+              href="https://www.instagram.com/janleystoreofc"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Instagram da Janley Store"
+              aria-label="Instagram @janleystoreofc"
+              title="@janleystoreofc"
               className="text-[#6b3f37] hover:text-[#f43f7a] transition-transform hover:scale-110"
             >
               <Instagram className="w-3.5 h-3.5" />
             </a>
             {/* Custom TikTok icon */}
             <a
-              href="https://www.tiktok.com/@janleystore"
+              href="https://www.tiktok.com/@janleystoreofc"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="TikTok da Janley Store"
+              aria-label="TikTok @janleystoreofc"
+              title="@janleystoreofc"
               className="text-[#6b3f37] hover:text-[#f43f7a] transition-transform hover:scale-110"
             >
               <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">

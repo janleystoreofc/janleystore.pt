@@ -75,15 +75,30 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
                   </div>
                 </a>
 
-                <div className="p-3 rounded-2xl bg-[#fdf5f4] border border-[#fae2dc] flex items-center gap-3 sm:col-span-2">
+                <div className="p-3 rounded-2xl bg-[#fdf5f4] border border-[#fae2dc] flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-[#fdedea] text-[#f43f7a] flex items-center justify-center flex-shrink-0">
                     <MapPin className="w-4 h-4" />
                   </div>
                   <div>
                     <div className="text-[11px] text-[#735953]">Localização</div>
-                    <div className="text-xs font-bold text-[#33221e]">Guimarães, Portugal</div>
+                    <div className="text-xs font-bold text-[#33221e]">Guimarães, Braga - Portugal 🇵🇹</div>
                   </div>
                 </div>
+
+                <a
+                  href="https://www.instagram.com/janleystoreofc"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-3 rounded-2xl bg-[#fdf5f4] border border-[#fae2dc] flex items-center gap-3 hover:border-[#f43f7a] transition-colors"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-[#fdedea] text-[#f43f7a] flex items-center justify-center flex-shrink-0">
+                    <span className="font-bold text-xs">@</span>
+                  </div>
+                  <div>
+                    <div className="text-[11px] text-[#735953]">Redes Sociais</div>
+                    <div className="text-xs font-bold text-[#f43f7a]">@janleystoreofc</div>
+                  </div>
+                </a>
               </div>
 
               <div className="pt-1">

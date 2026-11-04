@@ -20,6 +20,8 @@ import { CustomOrderModal } from './components/CustomOrderModal';
 import { SearchModal } from './components/SearchModal';
 import { AboutModal } from './components/AboutModal';
 import { ContactModal } from './components/ContactModal';
+import { OrderTrackingModal } from './components/OrderTrackingModal';
+import { BudgetQuoteSection } from './components/BudgetQuoteSection';
 import { PRODUCTS } from './data/products';
 import { Product } from './types';
 import { CheckCircle2, MessageCircle } from 'lucide-react';
@@ -35,6 +37,8 @@ function AppContent() {
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
+  const [orderTrackingOpen, setOrderTrackingOpen] = useState(false);
+  const [trackingOrderNumber, setTrackingOrderNumber] = useState('JNL-2026-8491');
 
   const { notification, clearNotification } = useCart();
 
@@ -60,7 +64,10 @@ function AppContent() {
   return (
     <div className="min-h-screen flex flex-col bg-white text-[#33221e] antialiased selection:bg-[#f43f7a]/15 selection:text-[#f43f7a]">
       {/* 1. Top Announcement Bar */}
-      <TopBar onOpenContact={() => setContactModalOpen(true)} />
+      <TopBar
+        onOpenContact={() => setContactModalOpen(true)}
+        onOpenOrderTracking={() => setOrderTrackingOpen(true)}
+      />
 
       {/* 2. Main Header / Navbar */}
       <Navbar
@@ -71,6 +78,7 @@ function AppContent() {
         onOpenCustomModal={() => setCustomModalOpen(true)}
         onOpenAbout={() => setAboutModalOpen(true)}
         onOpenContact={() => setContactModalOpen(true)}
+        onOpenOrderTracking={() => setOrderTrackingOpen(true)}
       />
 
       <main className="flex-1">
@@ -89,7 +97,7 @@ function AppContent() {
           onSelectCategory={handleSelectCategory}
         />
 
-        {/* 6. Produtos em Destaque (4 Columns Layout) */}
+        {/* 6. Produtos em Destaque (Grid 3 por linha) */}
         <FeaturedProducts
           products={PRODUCTS}
           selectedCategoryId={selectedCategory}
@@ -97,7 +105,10 @@ function AppContent() {
           onViewProductDetail={(product: Product) => setSelectedProduct(product)}
         />
 
-        {/* 7. Customization Banner */}
+        {/* 7. Aba de Orçamento Direto 3D via WhatsApp com Amostra e Quantidade */}
+        <BudgetQuoteSection onBackToShop={handleExploreProducts} />
+
+        {/* 8. Customization Banner */}
         <CustomizationBanner
           onOpenCustomModal={() => setCustomModalOpen(true)}
         />
@@ -109,7 +120,14 @@ function AppContent() {
         onOpenCustomModal={() => setCustomModalOpen(true)}
         onOpenAbout={() => setAboutModalOpen(true)}
         onOpenContact={() => setContactModalOpen(true)}
-        onOpenHelpModal={() => setAboutModalOpen(true)}
+        onOpenHelpModal={(topic) => {
+          if (topic === 'Acompanhamento de Encomenda') {
+            setOrderTrackingOpen(true);
+          } else {
+            setAboutModalOpen(true);
+          }
+        }}
+        onOpenOrderTracking={() => setOrderTrackingOpen(true)}
       />
 
       {/* Cart Drawer */}
@@ -119,6 +137,10 @@ function AppContent() {
       <CheckoutModal
         isOpen={checkoutModalOpen}
         onClose={() => setCheckoutModalOpen(false)}
+        onOpenOrderTracking={(orderNum) => {
+          setTrackingOrderNumber(orderNum);
+          setOrderTrackingOpen(true);
+        }}
       />
 
       {/* Product Detail Modal */}
@@ -154,6 +176,13 @@ function AppContent() {
       <ContactModal
         isOpen={contactModalOpen}
         onClose={() => setContactModalOpen(false)}
+      />
+
+      {/* 3D Print Order Tracking Modal */}
+      <OrderTrackingModal
+        isOpen={orderTrackingOpen}
+        onClose={() => setOrderTrackingOpen(false)}
+        initialOrderNumber={trackingOrderNumber}
       />
 
       {/* Global Toast Notification */}

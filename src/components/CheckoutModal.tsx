@@ -5,13 +5,15 @@ import { useCart } from '../context/CartContext';
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenOrderTracking?: (orderNumber: string) => void;
 }
 
-export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
+export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onOpenOrderTracking }) => {
   const { items, subtotal, shipping, discount, total, couponCode, clearCart } = useCart();
 
   const [step, setStep] = useState<'details' | 'payment' | 'confirmation'>('details');
 
+  const [deliveryMethod, setDeliveryMethod] = useState<'ctt' | 'uber' | 'recolha'>('ctt');
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -23,7 +25,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     notas: '',
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<'mbway' | 'multibanco' | 'card' | 'paypal'>('mbway');
   const [mbwayPhone, setMbwayPhone] = useState('');
   const [orderNumber, setOrderNumber] = useState('');
 
@@ -38,9 +39,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
   const handleNextToPayment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nome || !formData.telefone || !formData.morada || !formData.codigoPostal || !formData.cidade) {
-      alert('Por favor preenche os campos obrigatórios de envio.');
-      return;
+    if (deliveryMethod !== 'recolha') {
+      if (!formData.nome || !formData.telefone || !formData.morada || !formData.codigoPostal || !formData.cidade) {
+        alert('Por favor preenche os campos obrigatórios de envio.');
+        return;
+      }
+    } else {
+      if (!formData.nome || !formData.telefone) {
+        alert('Por favor preenche o teu Nome e Telemóvel para a recolha.');
+        return;
+      }
     }
     setStep('payment');
   };
@@ -93,14 +101,76 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
             <form onSubmit={handleNextToPayment} className="space-y-4">
               <div>
                 <h3 className="font-serif-title text-2xl font-bold text-[#33221e]">
-                  Dados de Envio & Entrega
+                  Opções de Entrega & Envio
                 </h3>
                 <p className="text-xs text-[#735953] mt-1">
-                  Enviamos de forma rápida e segura para qualquer morada em Portugal.
+                  Atelier sediado em <strong>Guimarães, Braga - Portugal</strong> 🇵🇹 com envio para Portugal inteiro.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {/* Delivery method selection */}
+              <div>
+                <label className="block text-xs font-bold text-[#33221e] mb-2">
+                  Seleciona como desejas receber:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMethod('ctt')}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      deliveryMethod === 'ctt'
+                        ? 'border-[#f43f7a] bg-[#fef5f7] ring-1.5 ring-[#f43f7a]'
+                        : 'border-[#fae2dc] bg-white hover:border-[#f43f7a]/40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-xs text-[#33221e]">
+                      <Truck className="w-3.5 h-3.5 text-[#f43f7a]" />
+                      <span>CTT Expresso</span>
+                    </div>
+                    <p className="text-[10px] text-[#735953] mt-0.5">
+                      Todo Portugal Continental & Ilhas
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMethod('uber')}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      deliveryMethod === 'uber'
+                        ? 'border-[#f43f7a] bg-[#fef5f7] ring-1.5 ring-[#f43f7a]'
+                        : 'border-[#fae2dc] bg-white hover:border-[#f43f7a]/40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-xs text-[#33221e]">
+                      <span className="w-3.5 h-3.5 rounded bg-black text-white text-[9px] font-black flex items-center justify-center">U</span>
+                      <span>Uber Flash</span>
+                    </div>
+                    <p className="text-[10px] text-[#735953] mt-0.5">
+                      Entrega rápida Guimarães e arredores
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMethod('recolha')}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      deliveryMethod === 'recolha'
+                        ? 'border-[#f43f7a] bg-[#fef5f7] ring-1.5 ring-[#f43f7a]'
+                        : 'border-[#fae2dc] bg-white hover:border-[#f43f7a]/40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-xs text-[#33221e]">
+                      <Building2 className="w-3.5 h-3.5 text-[#f43f7a]" />
+                      <span>Recolha no Atelier</span>
+                    </div>
+                    <p className="text-[10px] text-[#735953] mt-0.5">
+                      Guimarães, Braga (Grátis)
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-[#33221e] mb-1">
                     Nome Completo *
@@ -146,55 +216,59 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                   />
                 </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-[#33221e] mb-1">
-                    Morada Completa *
-                  </label>
-                  <input
-                    type="text"
-                    name="morada"
-                    required
-                    value={formData.morada}
-                    onChange={handleChange}
-                    placeholder="Rua, Número, Andar / Apartamento"
-                    className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] focus:bg-white rounded-xl px-3.5 py-2.5 text-sm outline-hidden"
-                  />
-                </div>
+                {deliveryMethod !== 'recolha' && (
+                  <>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-bold text-[#33221e] mb-1">
+                        Morada Completa *
+                      </label>
+                      <input
+                        type="text"
+                        name="morada"
+                        required
+                        value={formData.morada}
+                        onChange={handleChange}
+                        placeholder="Rua, Número, Andar / Apartamento"
+                        className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] focus:bg-white rounded-xl px-3.5 py-2.5 text-sm outline-hidden"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-[#33221e] mb-1">
-                    Código Postal *
-                  </label>
-                  <input
-                    type="text"
-                    name="codigoPostal"
-                    required
-                    value={formData.codigoPostal}
-                    onChange={handleChange}
-                    placeholder="4800-000"
-                    className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] focus:bg-white rounded-xl px-3.5 py-2.5 text-sm outline-hidden"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#33221e] mb-1">
+                        Código Postal *
+                      </label>
+                      <input
+                        type="text"
+                        name="codigoPostal"
+                        required
+                        value={formData.codigoPostal}
+                        onChange={handleChange}
+                        placeholder="4800-000"
+                        className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] focus:bg-white rounded-xl px-3.5 py-2.5 text-sm outline-hidden"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-[#33221e] mb-1">
-                    Localidade / Cidade *
-                  </label>
-                  <input
-                    type="text"
-                    name="cidade"
-                    required
-                    value={formData.cidade}
-                    onChange={handleChange}
-                    placeholder="Guimarães, Porto, Lisboa..."
-                    className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] focus:bg-white rounded-xl px-3.5 py-2.5 text-sm outline-hidden"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#33221e] mb-1">
+                        Localidade / Cidade *
+                      </label>
+                      <input
+                        type="text"
+                        name="cidade"
+                        required
+                        value={formData.cidade}
+                        onChange={handleChange}
+                        placeholder="Guimarães, Porto, Lisboa, Faro..."
+                        className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] focus:bg-white rounded-xl px-3.5 py-2.5 text-sm outline-hidden"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Order total preview pill */}
               <div className="p-3.5 rounded-xl bg-[#fef5f4] border border-[#fae2dc] flex items-center justify-between text-xs text-[#5e433d]">
-                <span>Total a pagar ({items.length} artigos)</span>
+                <span>Total ({items.length} artigos) • {deliveryMethod === 'recolha' ? 'Recolha em Guimarães' : deliveryMethod === 'uber' ? 'Uber Flash' : 'CTT Expresso'}</span>
                 <span className="text-base font-bold text-[#f43f7a]">
                   € {total.toFixed(2).replace('.', ',')}
                 </span>
@@ -205,122 +279,74 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                   type="submit"
                   className="w-full bg-[#f43f7a] hover:bg-[#e11d48] text-white font-bold text-xs uppercase tracking-wider py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>Continuar para Pagamento</span>
+                  <span>Continuar para Pagamento MB WAY</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </form>
           )}
 
-          {/* Step 2: Payment Selection */}
+          {/* Step 2: Payment Selection (MB WAY Exclusive) */}
           {step === 'payment' && (
             <div className="space-y-5">
               <div>
+                <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#008f51] uppercase tracking-wider bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 mb-2">
+                  <span>Pagamento 100% por MB WAY</span>
+                </div>
                 <h3 className="font-serif-title text-2xl font-bold text-[#33221e]">
-                  Método de Pagamento
+                  Pagamento por MB WAY
                 </h3>
                 <p className="text-xs text-[#735953] mt-1">
-                  Pagamento 100% seguro com tecnologia encriptada.
+                  Aceitamos exclusivamente <strong>MB WAY</strong> para garantir máxima rapidez e segurança.
                 </p>
               </div>
 
-              {/* Methods */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* MB WAY */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('mbway')}
-                  className={`p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
-                    paymentMethod === 'mbway'
-                      ? 'border-[#f43f7a] bg-[#fef5f7] ring-2 ring-[#f43f7a]/30'
-                      : 'border-[#fae2dc] bg-white hover:border-[#f43f7a]/50'
-                  }`}
-                >
-                  <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-black text-xs">
-                    MB
+              {/* MB WAY Card */}
+              <div className="p-4 sm:p-5 rounded-2xl border-2 border-[#f43f7a] bg-[#fef7f8] space-y-3.5 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-black text-white flex items-center justify-center font-black text-sm shadow-xs">
+                      <span className="text-white text-xs mr-0.5">MB</span>
+                      <span className="text-[#008f51] text-xs">WAY</span>
+                    </div>
+                    <div>
+                      <div className="font-bold text-base text-[#33221e]">MB WAY Janley Store</div>
+                      <div className="text-xs text-[#008f51] font-semibold">Conta Oficial Verificada</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-bold text-sm text-[#33221e]">MB WAY</div>
-                    <div className="text-[11px] text-[#735953]">Notificação no telemóvel</div>
-                  </div>
-                </button>
 
-                {/* Multibanco */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('multibanco')}
-                  className={`p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
-                    paymentMethod === 'multibanco'
-                      ? 'border-[#f43f7a] bg-[#fef5f7] ring-2 ring-[#f43f7a]/30'
-                      : 'border-[#fae2dc] bg-white hover:border-[#f43f7a]/50'
-                  }`}
-                >
-                  <div className="w-10 h-10 rounded-xl bg-[#2e3192] text-white flex items-center justify-center">
-                    <Building2 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-sm text-[#33221e]">Multibanco</div>
-                    <div className="text-[11px] text-[#735953]">Entidade e Referência</div>
-                  </div>
-                </button>
+                  <span className="text-xs font-bold text-[#f43f7a] bg-white px-2.5 py-1 rounded-full border border-[#fcd7df]">
+                    Exclusivo
+                  </span>
+                </div>
 
-                {/* Cartão de Crédito */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('card')}
-                  className={`p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
-                    paymentMethod === 'card'
-                      ? 'border-[#f43f7a] bg-[#fef5f7] ring-2 ring-[#f43f7a]/30'
-                      : 'border-[#fae2dc] bg-white hover:border-[#f43f7a]/50'
-                  }`}
-                >
-                  <div className="w-10 h-10 rounded-xl bg-stone-800 text-white flex items-center justify-center">
-                    <CreditCard className="w-5 h-5" />
+                <div className="pt-2 border-t border-[#f8d8de] text-xs text-[#664b45] space-y-1.5">
+                  <div className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-[#fae2dc]">
+                    <span className="text-[#735953]">Número MB WAY da Loja:</span>
+                    <strong className="text-sm font-bold text-[#33221e]">+351 935 742 686</strong>
                   </div>
-                  <div>
-                    <div className="font-bold text-sm text-[#33221e]">Cartão Visa/MC</div>
-                    <div className="text-[11px] text-[#735953]">Débito ou Crédito</div>
+                  <div className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-[#fae2dc]">
+                    <span className="text-[#735953]">Titular da Conta:</span>
+                    <strong className="text-xs font-bold text-[#33221e]">Janley Store (Guimarães, Portugal)</strong>
                   </div>
-                </button>
+                </div>
 
-                {/* PayPal */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('paypal')}
-                  className={`p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
-                    paymentMethod === 'paypal'
-                      ? 'border-[#f43f7a] bg-[#fef5f7] ring-2 ring-[#f43f7a]/30'
-                      : 'border-[#fae2dc] bg-white hover:border-[#f43f7a]/50'
-                  }`}
-                >
-                  <div className="w-10 h-10 rounded-xl bg-[#003087] text-white flex items-center justify-center font-bold italic text-sm">
-                    P
-                  </div>
-                  <div>
-                    <div className="font-bold text-sm text-[#33221e]">PayPal</div>
-                    <div className="text-[11px] text-[#735953]">Conta ou Cartão</div>
-                  </div>
-                </button>
-              </div>
-
-              {/* MB WAY phone input if selected */}
-              {paymentMethod === 'mbway' && (
-                <div className="p-4 bg-[#fef5f7] rounded-2xl border border-[#fae2dc] space-y-2">
-                  <label className="block text-xs font-bold text-[#33221e]">
-                    Número de Telemóvel para MB WAY
+                <div>
+                  <label className="block text-xs font-bold text-[#33221e] mb-1.5">
+                    O teu número de telemóvel associado ao MB WAY:
                   </label>
                   <input
                     type="tel"
-                    placeholder="912 345 678"
+                    placeholder="+351 912 345 678"
                     defaultValue={formData.telefone}
                     onChange={(e) => setMbwayPhone(e.target.value)}
-                    className="w-full bg-white border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl px-3.5 py-2.5 text-sm outline-hidden"
+                    className="w-full bg-white border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl px-3.5 py-2.5 text-sm outline-hidden font-medium"
                   />
-                  <p className="text-[11px] text-[#735953]">
-                    Receberás um pedido de confirmação de <strong>€ {total.toFixed(2).replace('.', ',')}</strong> na tua app MB WAY.
+                  <p className="text-[11px] text-[#735953] mt-1.5 leading-relaxed">
+                    Ao clicares em confirmar, a tua encomenda é registada no sistema. Podes efetuar o envio de <strong>€ {total.toFixed(2).replace('.', ',')}</strong> na app MB WAY para o nosso contacto.
                   </p>
                 </div>
-              )}
+              </div>
 
               {/* Buttons */}
               <div className="flex gap-3 pt-2">
@@ -335,10 +361,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                 <button
                   type="button"
                   onClick={handleFinalizeOrder}
-                  className="flex-1 bg-[#f43f7a] hover:bg-[#e11d48] text-white font-bold text-xs uppercase tracking-wider py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 bg-[#f43f7a] hover:bg-[#e11d48] text-white font-bold text-xs uppercase tracking-wider py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
                   <ShieldCheck className="w-4 h-4" />
-                  <span>Confirmar & Pagar € {total.toFixed(2).replace('.', ',')}</span>
+                  <span>Confirmar Encomenda • € {total.toFixed(2).replace('.', ',')}</span>
                 </button>
               </div>
             </div>
@@ -371,16 +397,44 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                   <strong className="text-[#33221e]">{formData.nome || 'Cliente Janley Store'}</strong>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#735953]">Morada de Envio:</span>
-                  <span className="text-[#33221e] text-right font-medium">{formData.morada}, {formData.cidade}</span>
+                  <span className="text-[#735953]">Entrega:</span>
+                  <span className="text-[#33221e] font-semibold">
+                    {deliveryMethod === 'recolha' ? 'Recolha no Atelier (Guimarães)' : deliveryMethod === 'uber' ? 'Uber Flash (Local)' : 'CTT Expresso (Portugal)'}
+                  </span>
                 </div>
-                <div className="flex justify-between border-t border-[#fae2dc] pt-2">
-                  <span className="text-[#735953]">Método:</span>
-                  <span className="uppercase font-bold text-[#f43f7a]">{paymentMethod}</span>
+                {deliveryMethod !== 'recolha' && formData.morada && (
+                  <div className="flex justify-between">
+                    <span className="text-[#735953]">Morada de Envio:</span>
+                    <span className="text-[#33221e] text-right font-medium">{formData.morada}, {formData.cidade}</span>
+                  </div>
+                )}
+                <div className="border-t border-[#fae2dc] pt-2 space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#735953]">Pagamento:</span>
+                    <span className="font-bold text-[#008f51] flex items-center gap-1">
+                      <span className="bg-black text-white px-1 py-0.5 rounded text-[8px] font-black">MB</span> WAY
+                    </span>
+                  </div>
+                  <div className="p-2 bg-white rounded-lg border border-[#f8d8de] text-[11px] text-[#6d4f48]">
+                    Transfere <strong>€ {total.toFixed(2).replace('.', ',')}</strong> via MB WAY para: <br />
+                    <strong className="text-[#f43f7a] text-xs">+351 935 742 686</strong> (com referência: <strong>{orderNumber}</strong>)
+                  </div>
                 </div>
               </div>
 
               <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+                {onOpenOrderTracking && (
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onOpenOrderTracking(orderNumber);
+                    }}
+                    className="bg-[#f43f7a] hover:bg-[#e11d48] text-white font-bold text-xs uppercase tracking-wider py-3 px-6 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <span>Acompanhar Produção 3D</span>
+                  </button>
+                )}
+
                 <a
                   href={`https://wa.me/351935742686?text=${encodeURIComponent(
                     `Olá Janley Store! Acabei de fazer a encomenda ${orderNumber} no vosso website. Poderiam confirmar a receção?`
@@ -389,12 +443,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                   rel="noopener noreferrer"
                   className="bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs uppercase tracking-wider py-3 px-6 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
-                  <span>Acompanhar via WhatsApp</span>
+                  <span>WhatsApp</span>
                 </a>
 
                 <button
                   onClick={onClose}
-                  className="bg-[#33221e] hover:bg-black text-white font-bold text-xs uppercase tracking-wider py-3 px-6 rounded-xl transition-all cursor-pointer"
+                  className="bg-[#faf4f2] hover:bg-[#f3ded8] text-[#33221e] border border-[#fae2dc] font-bold text-xs uppercase tracking-wider py-3 px-6 rounded-xl transition-all cursor-pointer"
                 >
                   Voltar à Loja
                 </button>

@@ -7,6 +7,7 @@ interface FooterProps {
   onOpenAbout: () => void;
   onOpenContact: () => void;
   onOpenHelpModal: (topic: string) => void;
+  onOpenOrderTracking?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -15,6 +16,7 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenAbout,
   onOpenContact,
   onOpenHelpModal,
+  onOpenOrderTracking,
 }) => {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -45,28 +47,31 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
 
             <p className="text-sm text-[#664b45] leading-relaxed max-w-sm">
-              Criatividade, funcionalidade e design em cada detalhe. Produtos únicos feitos com impressão 3D em Portugal.
+              Criatividade, precisão e design em cada detalhe. Peças exclusivas em impressão 3D fabricadas em <strong>Guimarães, Braga - Portugal</strong> 🇵🇹 com entregas para Portugal inteiro via <strong>CTT Expresso, Uber Flash ou Recolha no Atelier</strong>.
             </p>
 
             <div className="flex items-center gap-3 pt-2">
               {/* Instagram */}
               <a
-                href="https://www.instagram.com/janleystore"
+                href="https://www.instagram.com/janleystoreofc"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-[#fdeef0] hover:bg-[#fcd7df] text-[#f43f7a] flex items-center justify-center transition-transform hover:scale-110 shadow-2xs"
-                aria-label="Instagram"
+                className="h-9 px-3 rounded-full bg-[#fdeef0] hover:bg-[#fcd7df] text-[#f43f7a] flex items-center gap-1.5 text-xs font-semibold transition-transform hover:scale-105 shadow-2xs"
+                aria-label="Instagram @janleystoreofc"
+                title="@janleystoreofc"
               >
                 <Instagram className="w-4 h-4" />
+                <span>@janleystoreofc</span>
               </a>
 
               {/* TikTok */}
               <a
-                href="https://www.tiktok.com/@janleystore"
+                href="https://www.tiktok.com/@janleystoreofc"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-[#fdeef0] hover:bg-[#fcd7df] text-[#f43f7a] flex items-center justify-center transition-transform hover:scale-110 shadow-2xs"
-                aria-label="TikTok"
+                aria-label="TikTok @janleystoreofc"
+                title="@janleystoreofc"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298 0 .59.046.87.135V9.4a6.35 6.35 0 0 0-.87-.06 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 9.79 5.38 6.27 6.27 0 0 0 2.89-5.32V8.41a8.27 8.27 0 0 0 4.67 1.43v-3.15z" />
@@ -79,7 +84,7 @@ export const Footer: React.FC<FooterProps> = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-[#fdeef0] hover:bg-[#fcd7df] text-[#25D366] flex items-center justify-center transition-transform hover:scale-110 shadow-2xs"
-                aria-label="WhatsApp"
+                aria-label="WhatsApp Janley Store"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19.01L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z" />
@@ -167,7 +172,13 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <button
-                  onClick={() => onOpenHelpModal('Acompanhamento de Encomenda')}
+                  onClick={() => {
+                    if (onOpenOrderTracking) {
+                      onOpenOrderTracking();
+                    } else {
+                      onOpenHelpModal('Acompanhamento de Encomenda');
+                    }
+                  }}
                   className="hover:text-[#f43f7a] transition-colors cursor-pointer"
                 >
                   Acompanhamento de Encomenda
@@ -255,35 +266,31 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
         </div>
 
-        {/* Bottom Bar: Copyright & Payment Badges */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#7d605a]">
+        {/* Bottom Bar: Copyright, MB WAY payment only & Delivery notice */}
+        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#7d605a] border-t border-[#fce9e5] mt-2">
           <div>
-            © {new Date().getFullYear()} Janley Store. Todos os direitos reservados. Guimarães, Portugal.
+            © {new Date().getFullYear()} Janley Store. Guimarães, Braga - Portugal 🇵🇹. Todos os direitos reservados.
           </div>
 
-          {/* Payment Badges (VISA, Mastercard, MB WAY, PayPal) */}
-          <div className="flex items-center gap-3">
-            {/* Visa */}
-            <div className="h-6 px-2 bg-white border border-stone-200 rounded flex items-center justify-center font-bold text-[11px] tracking-wider text-[#1a1f71] shadow-2xs">
-              VISA
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {/* Delivery Methods */}
+            <div className="text-[11px] text-[#6d4f48] bg-[#faf5f3] px-3 py-1.5 rounded-xl border border-[#fae4e0] flex items-center gap-1.5">
+              <span className="font-bold text-[#33221e]">Entregas:</span>
+              <span className="text-[#f43f7a] font-semibold">CTT Expresso</span>
+              <span>•</span>
+              <span className="text-[#f43f7a] font-semibold">Uber Flash</span>
+              <span>•</span>
+              <span>Recolha no Atelier</span>
             </div>
 
-            {/* Mastercard */}
-            <div className="h-6 px-2 bg-white border border-stone-200 rounded flex items-center gap-1 shadow-2xs">
-              <div className="w-3 h-3 rounded-full bg-[#eb001b]" />
-              <div className="w-3 h-3 rounded-full bg-[#f79e1b] -ml-2 opacity-90" />
-              <span className="text-[10px] font-bold text-stone-700 ml-0.5 hidden xs:inline">mastercard</span>
-            </div>
-
-            {/* MB WAY */}
-            <div className="h-6 px-2 bg-white border border-stone-200 rounded flex items-center gap-1 font-bold text-[10px] text-stone-900 shadow-2xs">
-              <span className="bg-black text-white px-1 py-0.5 rounded text-[8px] font-extrabold">MB</span>
-              <span className="text-[#008f51] font-black">WAY</span>
-            </div>
-
-            {/* PayPal */}
-            <div className="h-6 px-2 bg-white border border-stone-200 rounded flex items-center justify-center font-bold italic text-[11px] text-[#003087] shadow-2xs">
-              PayPal
+            {/* Exclusive Payment: MB WAY ONLY */}
+            <div className="flex items-center gap-2 bg-[#fdf5f4] border border-[#fae2dc] px-3 py-1.5 rounded-xl shadow-2xs">
+              <span className="text-[11px] text-[#735953] font-medium">Pagamento:</span>
+              <div className="h-6 px-2.5 bg-white border border-[#f3ccc3] rounded-lg flex items-center gap-1.5 shadow-2xs">
+                <span className="bg-black text-white px-1 py-0.5 rounded text-[8px] font-black">MB</span>
+                <span className="text-[#008f51] font-black text-xs">WAY</span>
+              </div>
+              <span className="text-[10px] text-[#8c6760] font-semibold">(Aceitamos apenas MB WAY)</span>
             </div>
           </div>
         </div>

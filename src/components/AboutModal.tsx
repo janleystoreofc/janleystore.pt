@@ -37,12 +37,12 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenC
             </h3>
             <div className="flex items-center gap-1.5 text-xs text-[#f43f7a] font-semibold mt-1">
               <MapPin className="w-3.5 h-3.5" />
-              <span>Estúdio & Atelier em Guimarães, Portugal</span>
+              <span>Atelier em Guimarães, Braga - Portugal 🇵🇹 • Entregas CTT, Uber ou Recolha</span>
             </div>
           </div>
 
           <p className="text-sm text-[#5f4640] leading-relaxed">
-            A <strong>JANLEY STORE</strong> nasceu da paixão por dar vida e forma a ideias inovadoras através da tecnologia de <strong>impressão 3D</strong>. Cada peça é cuidadosamente desenhada, testada e fabricada camada a camada na histórica cidade berço de Guimarães.
+            A <strong>JANLEY STORE</strong> (<span className="text-[#f43f7a] font-semibold">@janleystoreofc</span>) nasceu da paixão por dar vida e forma a ideias inovadoras através da tecnologia de <strong>impressão 3D</strong>. Cada peça é cuidadosamente desenhada, testada e fabricada camada a camada em Guimarães, com entregas rápidas para todo o território português via CTT Expresso, Uber Flash ou recolha direta. Pagamentos exclusivos e práticos por <strong>MB WAY</strong>.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -65,6 +65,23 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenC
                 Produzido com PLA biodegradável derivado de recursos naturais renováveis como o amido de milho.
               </p>
             </div>
+          </div>
+
+          {/* Color Catalog Flyer Banner */}
+          <div className="rounded-2xl border border-[#fae2dc] overflow-hidden bg-[#faf4f2] p-3 text-left">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-[#33221e]">
+                Paleta Completa de Cores Janley Store
+              </span>
+              <span className="text-[11px] font-semibold text-[#f43f7a]">
+                Mais cor para as suas ideias
+              </span>
+            </div>
+            <img
+              src="/images/catalogo_nossas_cores.png"
+              alt="Catálogo Nossas Cores Janley Store - 3D Printing Filaments"
+              className="w-full h-auto rounded-xl object-contain border border-[#fae4e1]"
+            />
           </div>
 
           <div className="pt-2 flex gap-3">

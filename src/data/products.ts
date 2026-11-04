@@ -1,35 +1,17 @@
-import { Category, Product } from '../types';
+import { Category, Product, ProductColor } from '../types';
 
 export const CATEGORIES: Category[] = [
   {
     id: 'natal',
-    name: 'Coleção de Natal',
+    name: 'Natal',
     image: '/images/cat_natal.png',
     description: 'Árvores decorativas, estrelas e enfeites de Natal em filamento biodegradável.',
-  },
-  {
-    id: 'telemovel',
-    name: 'Capas de Telemóvel',
-    image: '/images/cat_telemovel.png',
-    description: 'Capas ergonómicas e suportes texturados com design 3D exclusivo.',
   },
   {
     id: 'chaveiros',
     name: 'Chaveiros',
     image: '/images/cat_chaveiros.png',
     description: 'Chaveiros de letras, corações e monogramas personalizados com alta definição.',
-  },
-  {
-    id: 'organizacao',
-    name: 'Organização',
-    image: '/images/cat_organizacao.png',
-    description: 'Porta-lápis canelados, caixas modulares e organizadores funcionais.',
-  },
-  {
-    id: 'decoracao',
-    name: 'Decoração',
-    image: '/images/cat_decoracao.png',
-    description: 'Vasos ondulados, bandejas minimalistas e peças de arte moderna.',
   },
   {
     id: 'gaming',
@@ -43,6 +25,132 @@ export const CATEGORIES: Category[] = [
     image: '/images/cat_personalizados.png',
     description: 'Nomes decorativos, logótipos 3D, datas especiais e presentes exclusivos.',
   },
+  {
+    id: 'decoracao',
+    name: 'Decoração',
+    image: '/images/cat_decoracao.png',
+    description: 'Vasos ondulados, bandejas minimalistas e peças de arte moderna.',
+  },
+  {
+    id: 'lazer',
+    name: 'Lazer',
+    image: '/images/cat_lazer.jpg',
+    description: 'Jogos de tabuleiro, puzzles mecânicos, dados e gadgets anti-stress.',
+  },
+  {
+    id: 'infantil',
+    name: 'Infantil',
+    image: '/images/cat_infantil.jpg',
+    description: 'Luminárias de quarto, puxadores temáticos e brinquedos didáticos seguros.',
+  },
+  {
+    id: 'organizacao',
+    name: 'Organização',
+    image: '/images/cat_organizacao.png',
+    description: 'Porta-lápis canelados, caixas modulares e organizadores de secretária.',
+  },
+  {
+    id: 'casa',
+    name: 'Casa',
+    image: '/images/cat_casa.jpg',
+    description: 'Porta-guardanapos, bases para copos, apoios e utilitários modernos.',
+  },
+  {
+    id: 'futebol',
+    name: 'Futebol',
+    image: '/images/cat_futebol.jpg',
+    description: 'Troféus geométricos, porta-chaves de clubes de futebol e símbolos desportivos.',
+  },
+  {
+    id: 'empresas',
+    name: 'Empresas',
+    image: '/images/cat_empresas.jpg',
+    description: 'Brindes corporativos com logótipo, suportes de balcão e placas com QR Code.',
+  },
+  {
+    id: 'outros',
+    name: 'Outros / Etc',
+    image: '/images/cat_outros.jpg',
+    description: 'Peças técnicas de reposição, utilitários sob encomenda e projetos especiais.',
+  },
+];
+export const JANLEY_COLORS: ProductColor[] = [
+  {
+    name: 'Dourado',
+    hex: '#f5b82a',
+    gradient: 'linear-gradient(135deg, #ffe066 0%, #f5b82a 50%, #cb8402 100%)',
+    isGradient: true,
+    sampleImage: '/images/vaso_dourado_amarelo.png',
+  },
+  {
+    name: 'Rosa Gradiente Preto',
+    hex: '#e11d68',
+    gradient: 'linear-gradient(135deg, #f0257c 0%, #ba165c 45%, #180912 100%)',
+    isGradient: true,
+    sampleImage: '/images/vaso_pink_gradiente_preto.png',
+  },
+  {
+    name: 'Roxo Gradiente Preto',
+    hex: '#8b1da8',
+    gradient: 'linear-gradient(135deg, #a81db5 0%, #751582 45%, #18091c 100%)',
+    isGradient: true,
+    sampleImage: '/images/vaso_roxo_gradiente_preto.png',
+  },
+  {
+    name: 'Mármore',
+    hex: '#e8e7e3',
+    gradient: 'radial-gradient(circle, #ffffff 20%, #e6e5e0 60%, #cecdc8 100%)',
+    isMarble: true,
+    sampleImage: '/images/vaso_marmore.png',
+  },
+  {
+    name: 'Laranja',
+    hex: '#ff6a00',
+  },
+  {
+    name: 'Amarelo',
+    hex: '#f7c700',
+  },
+  {
+    name: 'Vermelho',
+    hex: '#d91424',
+  },
+  {
+    name: 'Preto',
+    hex: '#1a1a1a',
+  },
+  {
+    name: 'Branco',
+    hex: '#ffffff',
+  },
+  {
+    name: 'Cinza',
+    hex: '#83878b',
+  },
+  {
+    name: 'Azul',
+    hex: '#0c5fe6',
+  },
+  {
+    name: 'Verde',
+    hex: '#009b48',
+  },
+  {
+    name: 'Castanho (mais claro)',
+    hex: '#b87842',
+  },
+  {
+    name: 'Rosa Pastel',
+    hex: '#e8a9b2',
+  },
+  {
+    name: 'Verde Salva',
+    hex: '#447b52',
+  },
+  {
+    name: 'Azul Hortênsia',
+    hex: '#90a4cb',
+  },
 ];
 
 export const PRODUCTS: Product[] = [
@@ -55,13 +163,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.8,
     reviewsCount: 120,
     image: '/images/prod_suporte_telemovel.png',
-    colors: [
-      { name: 'Areia / Bege', hex: '#d9a766' },
-      { name: 'Verde Salva', hex: '#447b52' },
-      { name: 'Branco Pérola', hex: '#fdf9f4' },
-      { name: 'Rosa Pastel', hex: '#e8a9b2' },
-      { name: 'Verde Floresta', hex: '#16382a' },
-    ],
+    colors: JANLEY_COLORS,
     description: 'Suporte minimalista canelado para telemóveis e tablets pequenos. Proporciona o ângulo perfeito de visualização na secretária com canal para passagem de cabo de carregamento.',
     dimensions: '8.5 x 8.0 x 7.2 cm',
     material: 'PLA Premium Biodegradável acabamento mate',
@@ -77,13 +179,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 98,
     image: '/images/prod_chaveiro_personalizado.png',
-    colors: [
-      { name: 'Madeira Natural', hex: '#c59d74' },
-      { name: 'Cinza Taupe', hex: '#8e796c' },
-      { name: 'Lavanda Suave', hex: '#9d9dbd' },
-      { name: 'Terracota', hex: '#b34747' },
-      { name: 'Verde Petróleo', hex: '#133e38' },
-    ],
+    colors: JANLEY_COLORS,
     description: 'Chaveiro 3D elegante com inicial ou símbolo de coração, argola dourada metálica reforçada e acabamento suave ao toque.',
     dimensions: '4.5 x 4.0 x 0.5 cm',
     material: 'PLA de Alta Densidade e Argola de Aço Inox Dourada',
@@ -99,13 +195,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.8,
     reviewsCount: 110,
     image: '/images/prod_organizador_mesa.png',
-    colors: [
-      { name: 'Areia Natural', hex: '#cc9e78' },
-      { name: 'Castanho Terra', hex: '#886d58' },
-      { name: 'Verde Militar', hex: '#374b3d' },
-      { name: 'Bordô Suave', hex: '#873c55' },
-      { name: 'Preto Grafite', hex: '#1e2826' },
-    ],
+    colors: JANLEY_COLORS,
     description: 'Conjunto duo canelado com acabamento estriado moderno. Perfeito para canetas, lápis, pincéis ou utensílios de escritório.',
     dimensions: '14.0 x 8.5 x 9.8 cm',
     material: 'PLA Bio de fabrico aditivo com parede reforçada',
@@ -121,13 +211,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 85,
     image: '/images/prod_vaso_decorativo.png',
-    colors: [
-      { name: 'Terracota Claro', hex: '#c88c60' },
-      { name: 'Caramelo', hex: '#7a5135' },
-      { name: 'Azul Hortênsia', hex: '#90a4cb' },
-      { name: 'Rosa Blush', hex: '#e8adb9' },
-      { name: 'Verde Profundo', hex: '#143729' },
-    ],
+    colors: JANLEY_COLORS,
     description: 'Vaso geométrico com linhas espirais esculpidas em impressão 3D precisa. Ideal para plantas secas, flores artificiais ou arranjos interiores sofisticados.',
     dimensions: '12.0 x 12.0 x 16.5 cm',
     material: 'PLA Ecológico Texturado com padrão espiral contínuo',
@@ -143,12 +227,7 @@ export const PRODUCTS: Product[] = [
     rating: 5.0,
     reviewsCount: 42,
     image: '/images/cat_natal.png',
-    colors: [
-      { name: 'Branco Neve', hex: '#fdf9f4' },
-      { name: 'Dourado Seda', hex: '#d4af37' },
-      { name: 'Rosa Pastel', hex: '#e8a9b2' },
-      { name: 'Verde Pinheiro', hex: '#16382a' },
-    ],
+    colors: JANLEY_COLORS,
     description: 'Árvore decorativa de Natal com estética origami e estrela no topo. Uma peça mágica e acolhedora para centros de mesa natalícios.',
     dimensions: '10.0 x 10.0 x 15.0 cm',
     material: 'PLA de origem vegetal',
@@ -164,12 +243,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 67,
     image: '/images/cat_gaming.png',
-    colors: [
-      { name: 'Preto Mate', hex: '#222222' },
-      { name: 'Madeira Clara', hex: '#c59d74' },
-      { name: 'Cinza Titânio', hex: '#636e72' },
-      { name: 'Branco Glaciar', hex: '#ffffff' },
-    ],
+    colors: JANLEY_COLORS,
     description: 'Suporte ergonómico e estável compatível com comandos PS5, PS4, Xbox e Nintendo Switch Pro. Base antiderrapante incluída.',
     dimensions: '9.0 x 10.5 x 12.0 cm',
     material: 'PLA+ reforçado com elevada rigidez mecânica',
@@ -185,12 +259,7 @@ export const PRODUCTS: Product[] = [
     rating: 5.0,
     reviewsCount: 134,
     image: '/images/cat_personalizados.png',
-    colors: [
-      { name: 'Branco Pérola', hex: '#fbf7f2' },
-      { name: 'Rosa Algodão', hex: '#f2b5c0' },
-      { name: 'Dourado Acetinado', hex: '#dfb76c' },
-      { name: 'Lilás Suave', hex: '#b8a7d7' },
-    ],
+    colors: JANLEY_COLORS,
     description: 'Letreiro 3D personalizado com o teu nome ou palavra favorita numa caligrafia fluida, apoiado sobre uma base sólida com coração decorativo.',
     dimensions: '20.0 x 4.5 x 8.0 cm (varia consoante o nome)',
     material: 'PLA Premium em dupla camada',
@@ -206,12 +275,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.7,
     reviewsCount: 51,
     image: '/images/cat_telemovel.png',
-    colors: [
-      { name: 'Branco Texturado', hex: '#fdf9f4' },
-      { name: 'Bege Areia', hex: '#e4d3c3' },
-      { name: 'Terracota', hex: '#b34747' },
-      { name: 'Preto Grafite', hex: '#1e2826' },
-    ],
+    colors: JANLEY_COLORS,
     description: 'Capa esculpida com textura tátil geométrica que melhora a aderência na mão e protege contra impactos ligeiros.',
     dimensions: 'Adaptada ao modelo de smartphone selecionado',
     material: 'TPU flexível / PLA Híbrido com absorção de choques',

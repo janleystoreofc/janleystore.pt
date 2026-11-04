@@ -5,23 +5,23 @@ export const FeatureBar: React.FC = () => {
   const features = [
     {
       icon: Truck,
-      title: 'Envios para Portugal',
-      subtitle: 'De forma rápida e segura',
+      title: 'CTT • Uber • Recolha',
+      subtitle: 'Entregas em todo Portugal',
     },
     {
       icon: Award,
-      title: 'Produtos de qualidade',
-      subtitle: 'Com atenção aos detalhes',
+      title: 'Guimarães, Braga 🇵🇹',
+      subtitle: 'Produção 3D artesanal local',
     },
     {
       icon: Box,
-      title: 'Design exclusivo',
-      subtitle: 'Peças únicas e personalizadas',
+      title: 'Peças Sob Medida',
+      subtitle: 'Cores, nomes & orçamentos',
     },
     {
       icon: ShieldCheck,
-      title: 'Pagamentos seguros',
-      subtitle: 'Checkout 100% protegido',
+      title: 'Pagamento MB WAY',
+      subtitle: 'Aceitamos apenas MB WAY',
     },
   ];
 

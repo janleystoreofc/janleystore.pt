@@ -130,15 +130,41 @@ export const CustomOrderModal: React.FC<CustomOrderModalProps> = ({ isOpen, onCl
 
                 <div>
                   <label className="block text-xs font-bold text-[#33221e] mb-1">
-                    Preferência de Cor
+                    Preferência de Cor / Filamento 3D
                   </label>
                   <input
                     type="text"
                     value={colorPreference}
                     onChange={(e) => setColorPreference(e.target.value)}
-                    placeholder="Ex: Dourado, Rosa, Preto Mate..."
-                    className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] focus:bg-white rounded-xl px-3 py-2 text-sm outline-hidden"
+                    placeholder="Ex: Dourado Amarelo, Rosa Gradiente Preto, Mármore..."
+                    className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] focus:bg-white rounded-xl px-3 py-2 text-sm outline-hidden mb-1.5"
                   />
+                  <div className="flex flex-wrap gap-1">
+                    {[
+                      'Dourado',
+                      'Rosa Gradiente Preto',
+                      'Roxo Gradiente Preto',
+                      'Mármore',
+                      'Preto',
+                      'Branco',
+                      'Laranja',
+                      'Azul',
+                      'Verde',
+                    ].map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setColorPreference(c)}
+                        className={`text-[10px] px-2 py-0.5 rounded-md border transition-colors cursor-pointer ${
+                          colorPreference === c
+                            ? 'bg-[#f43f7a] text-white border-[#f43f7a]'
+                            : 'bg-white text-[#5f4640] border-[#e2cdc6] hover:border-[#f43f7a]'
+                        }`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
