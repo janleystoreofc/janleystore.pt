@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CartProvider, useCart } from './context/CartContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { TopBar } from './components/TopBar';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -21,15 +22,44 @@ import { SearchModal } from './components/SearchModal';
 import { AboutModal } from './components/AboutModal';
 import { ContactModal } from './components/ContactModal';
 import { OrderTrackingModal } from './components/OrderTrackingModal';
+import { CustomerProfileModal } from './components/CustomerProfileModal';
 import { BudgetQuoteSection } from './components/BudgetQuoteSection';
+import { AdminPanel } from './components/AdminPanel';
 import { PRODUCTS } from './data/products';
+import { getPublicProducts } from './lib/supabase';
 import { Product } from './types';
-import { CheckCircle2, MessageCircle } from 'lucide-react';
+import { CheckCircle2, Sparkles } from 'lucide-react';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('inicio');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+
+  // Admin routing state (/admin)
+  const [isAdminRoute, setIsAdminRoute] = useState(() => {
+    return window.location.pathname === '/admin' || window.location.search.includes('admin');
+  });
+
+  // Listen to popstate for browser navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      setIsAdminRoute(window.location.pathname === '/admin' || window.location.search.includes('admin'));
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Fetch public products from Supabase (or fallback cleanly if table not created yet)
+  useEffect(() => {
+    getPublicProducts()
+      .then((data) => {
+        if (data && data.length > 0) {
+          setProducts(data);
+        }
+      })
+      .catch(() => {});
+  }, [isAdminRoute]);
 
   // Modals state
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
@@ -39,8 +69,11 @@ function AppContent() {
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [orderTrackingOpen, setOrderTrackingOpen] = useState(false);
   const [trackingOrderNumber, setTrackingOrderNumber] = useState('JNL-2026-8491');
+  const [customerProfileOpen, setCustomerProfileOpen] = useState(false);
+  const [customerProfileTab, setCustomerProfileTab] = useState<'favoritos' | 'conta' | 'encomendas'>('favoritos');
 
   const { notification, clearNotification } = useCart();
+  const { t } = useLanguage();
 
   // Scroll smoothly to products section
   const handleExploreProducts = () => {
@@ -61,8 +94,27 @@ function AppContent() {
     }
   };
 
+  // Navigate to Admin
+  const handleOpenAdmin = () => {
+    window.history.pushState({}, '', '/admin');
+    setIsAdminRoute(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Return from Admin to Store
+  const handleBackToShop = () => {
+    window.history.pushState({}, '', '/');
+    setIsAdminRoute(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // If in Admin panel mode
+  if (isAdminRoute) {
+    return <AdminPanel onBackToShop={handleBackToShop} />;
+  }
+
   return (
-    <div className="min-h-screen flex flex-col bg-white text-[#33221e] antialiased selection:bg-[#f43f7a]/15 selection:text-[#f43f7a]">
+    <div className="min-h-screen flex flex-col bg-white text-[#3d2314] antialiased selection:bg-[#f59e0b]/25 selection:text-[#78350f]">
       {/* 1. Top Announcement Bar */}
       <TopBar
         onOpenContact={() => setContactModalOpen(true)}
@@ -79,6 +131,11 @@ function AppContent() {
         onOpenAbout={() => setAboutModalOpen(true)}
         onOpenContact={() => setContactModalOpen(true)}
         onOpenOrderTracking={() => setOrderTrackingOpen(true)}
+        onOpenCustomerProfile={() => {
+          setCustomerProfileTab('favoritos');
+          setCustomerProfileOpen(true);
+        }}
+        onOpenAdmin={handleOpenAdmin}
       />
 
       <main className="flex-1">
@@ -91,7 +148,7 @@ function AppContent() {
         {/* 4. Value Proposition Bar (4 Feature Cards) */}
         <FeatureBar />
 
-        {/* 5. Comprar por Categoria (7 Circular Categories) */}
+        {/* 5. Comprar por Categoria (12 Circular Categories) */}
         <CategoriesSection
           selectedCategoryId={selectedCategory}
           onSelectCategory={handleSelectCategory}
@@ -99,7 +156,7 @@ function AppContent() {
 
         {/* 6. Produtos em Destaque (Grid 3 por linha) */}
         <FeaturedProducts
-          products={PRODUCTS}
+          products={products}
           selectedCategoryId={selectedCategory}
           onClearFilter={() => setSelectedCategory(null)}
           onViewProductDetail={(product: Product) => setSelectedProduct(product)}
@@ -114,7 +171,7 @@ function AppContent() {
         />
       </main>
 
-      {/* 8. Footer */}
+      {/* 9. Footer with Refer-a-friend WhatsApp button and MB WAY notice */}
       <Footer
         onSelectCategory={handleSelectCategory}
         onOpenCustomModal={() => setCustomModalOpen(true)}
@@ -128,6 +185,7 @@ function AppContent() {
           }
         }}
         onOpenOrderTracking={() => setOrderTrackingOpen(true)}
+        onOpenAdmin={handleOpenAdmin}
       />
 
       {/* Cart Drawer */}
@@ -153,6 +211,16 @@ function AppContent() {
       <CustomOrderModal
         isOpen={customModalOpen}
         onClose={() => setCustomModalOpen(false)}
+      />
+
+      {/* Customer Profile & Favorites Modal */}
+      <CustomerProfileModal
+        isOpen={customerProfileOpen}
+        onClose={() => setCustomerProfileOpen(false)}
+        products={products}
+        onViewProductDetail={(product: Product) => setSelectedProduct(product)}
+        onOpenOrderTracking={() => setOrderTrackingOpen(true)}
+        defaultTab={customerProfileTab}
       />
 
       {/* Search Modal */}
@@ -189,33 +257,46 @@ function AppContent() {
       {notification && (
         <div
           onClick={clearNotification}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#33221e] text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 animate-bounce cursor-pointer"
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-[#3d2314] text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 animate-bounce cursor-pointer border border-[#f59e0b]/40"
         >
-          <CheckCircle2 className="w-4 h-4 text-[#f43f7a]" />
+          <CheckCircle2 className="w-4 h-4 text-[#f59e0b]" />
           <span>{notification}</span>
         </div>
       )}
 
-      {/* Floating Action WhatsApp Button for Quick Direct Support */}
-      <a
-        href="https://wa.me/351935742686?text=Ol%C3%A1%20Janley%20Store!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20as%20pe%C3%A7as%203D."
-        target="_blank"
-        rel="noreferrer"
-        aria-label="Falar no WhatsApp com Janley Store"
-        className="fixed bottom-6 right-6 z-30 w-13 h-13 rounded-full bg-[#25D366] hover:bg-[#20ba5a] text-white shadow-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 group"
+      {/* Glowing 3D Custom Order Floating Action Button (Replaces WhatsApp) */}
+      <button
+        type="button"
+        onClick={() => setCustomModalOpen(true)}
+        aria-label={t('floating_custom_title')}
+        className="fixed bottom-5 right-5 z-40 group flex items-center gap-2.5 bg-gradient-to-r from-[#d97706] to-[#f59e0b] hover:from-[#b45309] hover:to-[#d97706] text-white px-4 py-3 rounded-full shadow-[0_8px_25px_rgba(217,119,6,0.45)] hover:shadow-[0_12px_35px_rgba(217,119,6,0.65)] transition-all duration-300 hover:scale-105 active:scale-95 border-2 border-white/40 cursor-pointer backdrop-blur-xs"
       >
-        <svg className="w-7 h-7 fill-current" viewBox="0 0 24 24">
-          <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19.02L7.55 18.84L4.44 19.66L5.27 16.63L5.07 16.31C4.24 14.99 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.67 12.05 3.67M9.53 7.35C9.34 7.35 9.04 7.42 8.78 7.7C8.53 7.98 7.82 8.64 7.82 10C7.82 11.36 8.81 12.67 8.95 12.86C9.09 13.05 10.89 15.82 13.63 17C14.28 17.29 14.79 17.46 15.19 17.58C15.84 17.79 16.44 17.76 16.91 17.69C17.43 17.61 18.52 17.03 18.75 16.39C18.98 15.74 18.98 15.19 18.91 15.07C18.84 14.96 18.66 14.89 18.39 14.75C18.11 14.61 16.79 13.96 16.54 13.87C16.3 13.78 16.12 13.73 15.94 14C15.76 14.28 15.24 14.89 15.08 15.07C14.93 15.26 14.77 15.28 14.5 15.14C14.22 15 13.33 14.71 12.28 13.77C11.46 13.04 10.91 12.14 10.75 11.86C10.59 11.59 10.73 11.44 10.87 11.3C11 11.17 11.16 10.96 11.3 10.8C11.44 10.63 11.49 10.52 11.58 10.33C11.67 10.15 11.63 9.98 11.56 9.85C11.49 9.71 10.94 8.35 10.71 7.8C10.49 7.27 10.26 7.34 10.09 7.34C9.93 7.34 9.74 7.35 9.53 7.35Z" />
-        </svg>
-      </a>
+        <div className="relative flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+          </span>
+          <Sparkles className="w-5 h-5 text-white transition-transform group-hover:rotate-12 duration-300" />
+        </div>
+        <div className="flex flex-col text-left leading-tight pr-0.5">
+          <span className="text-[12px] font-bold tracking-wide">
+            {t('floating_custom_title')}
+          </span>
+          <span className="text-[10px] text-amber-100 font-medium">
+            {t('floating_custom_sub')}
+          </span>
+        </div>
+      </button>
     </div>
   );
 }
 
 export default function App() {
   return (
-    <CartProvider>
-      <AppContent />
-    </CartProvider>
+    <LanguageProvider>
+      <CartProvider>
+        <AppContent />
+      </CartProvider>
+    </LanguageProvider>
   );
 }

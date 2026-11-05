@@ -118,14 +118,14 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
         <div className="relative bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-[#fae2dc] my-8 animate-in zoom-in-95 duration-200 space-y-6">
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 p-2 text-[#7d605a] hover:text-[#f43f7a] hover:bg-[#fdeef0] rounded-full transition-colors cursor-pointer"
+            className="absolute top-5 right-5 p-2 text-[#7d605a] hover:text-[#d97706] hover:bg-[#fdeef0] rounded-full transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
 
           {/* Modal Header */}
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#fdedea] text-[#f43f7a] flex items-center justify-center flex-shrink-0 shadow-2xs">
+            <div className="w-12 h-12 rounded-2xl bg-[#fdedea] text-[#d97706] flex items-center justify-center flex-shrink-0 shadow-2xs">
               <User className="w-6 h-6" />
             </div>
             <div>
@@ -144,7 +144,7 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
               onClick={() => setActiveTab('favoritos')}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'favoritos'
-                  ? 'bg-[#f43f7a] text-white shadow-2xs'
+                  ? 'bg-[#d97706] text-white shadow-2xs'
                   : 'bg-[#faf4f2] text-[#6d4f48] hover:bg-[#fdedea]'
               }`}
             >
@@ -156,7 +156,7 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
               onClick={() => setActiveTab('conta')}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'conta'
-                  ? 'bg-[#f43f7a] text-white shadow-2xs'
+                  ? 'bg-[#d97706] text-white shadow-2xs'
                   : 'bg-[#faf4f2] text-[#6d4f48] hover:bg-[#fdedea]'
               }`}
             >
@@ -169,7 +169,7 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                 onClose();
                 onOpenOrderTracking();
               }}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-[#faf4f2] text-[#6d4f48] hover:bg-[#fdedea] hover:text-[#f43f7a]"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-[#faf4f2] text-[#6d4f48] hover:bg-[#fdedea] hover:text-[#d97706]"
             >
               <Package className="w-3.5 h-3.5" />
               <span>Rastrear Encomenda</span>
@@ -195,12 +195,12 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
             <div className="space-y-4">
               <div className="flex items-center justify-between text-xs text-[#735953]">
                 <span>Peças 3D que guardaste para mais tarde:</span>
-                <span className="font-semibold text-[#f43f7a]">{favoriteProducts.length} guardadas</span>
+                <span className="font-semibold text-[#d97706]">{favoriteProducts.length} guardadas</span>
               </div>
 
               {favoriteProducts.length === 0 ? (
                 <div className="py-12 text-center space-y-3 bg-[#faf5f3] rounded-2xl border border-dashed border-[#fae2dc]">
-                  <div className="w-12 h-12 rounded-full bg-[#fdedea] text-[#f43f7a] flex items-center justify-center mx-auto">
+                  <div className="w-12 h-12 rounded-full bg-[#fdedea] text-[#d97706] flex items-center justify-center mx-auto">
                     <Heart className="w-6 h-6 stroke-[1.8]" />
                   </div>
                   <h3 className="font-bold text-[#33221e] text-sm">
@@ -211,7 +211,7 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                   </p>
                   <button
                     onClick={onClose}
-                    className="inline-flex items-center gap-1.5 bg-[#f43f7a] text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs hover:bg-[#e11d48] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 bg-[#d97706] text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs hover:bg-[#e11d48] transition-colors cursor-pointer"
                   >
                     <span>Explorar Produtos</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -222,7 +222,7 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                   {favoriteProducts.map((prod) => (
                     <div
                       key={prod.id}
-                      className="p-3 bg-[#faf6f4] rounded-2xl border border-[#fae4e1] flex items-center gap-3 group hover:border-[#f43f7a]/40 transition-all"
+                      className="p-3 bg-[#faf6f4] rounded-2xl border border-[#fae4e1] flex items-center gap-3 group hover:border-[#d97706]/40 transition-all"
                     >
                       <div
                         onClick={() => {
@@ -240,7 +240,7 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                             onClose();
                             onViewProductDetail(prod);
                           }}
-                          className="font-bold text-xs text-[#33221e] hover:text-[#f43f7a] transition-colors truncate cursor-pointer"
+                          className="font-bold text-xs text-[#33221e] hover:text-[#d97706] transition-colors truncate cursor-pointer"
                         >
                           {prod.name}
                         </h4>
@@ -253,7 +253,7 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                       <div className="flex flex-col gap-1.5">
                         <button
                           onClick={() => addToCart(prod, prod.colors[0], 1)}
-                          className="p-2 bg-[#f43f7a] hover:bg-[#e11d48] text-white rounded-lg shadow-2xs transition-all cursor-pointer"
+                          className="p-2 bg-[#d97706] hover:bg-[#e11d48] text-white rounded-lg shadow-2xs transition-all cursor-pointer"
                           title="Adicionar ao Carrinho"
                         >
                           <ShoppingBag className="w-3.5 h-3.5" />
@@ -305,7 +305,7 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsLoginMode(!isLoginMode)}
-                      className="text-xs font-bold text-[#f43f7a] hover:underline cursor-pointer"
+                      className="text-xs font-bold text-[#d97706] hover:underline cursor-pointer"
                     >
                       {isLoginMode ? 'Não tens conta? Criar conta' : 'Já tens conta? Entrar'}
                     </button>
@@ -319,7 +319,7 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                         value={clientName}
                         onChange={(e) => setClientName(e.target.value)}
                         placeholder="Ex: Ana Sofia"
-                        className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl px-3.5 py-2.5 text-sm outline-hidden"
+                        className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2.5 text-sm outline-hidden"
                       />
                     </div>
                   )}
@@ -334,7 +334,7 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="o-teu-email@gmail.com"
-                        className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl pl-10 pr-3.5 py-2.5 text-sm outline-hidden"
+                        className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl pl-10 pr-3.5 py-2.5 text-sm outline-hidden"
                       />
                     </div>
                   </div>
@@ -349,7 +349,7 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl pl-10 pr-3.5 py-2.5 text-sm outline-hidden"
+                        className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl pl-10 pr-3.5 py-2.5 text-sm outline-hidden"
                       />
                     </div>
                   </div>
@@ -357,7 +357,7 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-[#f43f7a] hover:bg-[#e11d48] text-white font-bold text-xs uppercase tracking-wider py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full bg-[#d97706] hover:bg-[#e11d48] text-white font-bold text-xs uppercase tracking-wider py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>{isLoginMode ? 'Entrar no Perfil' : 'Criar Conta de Cliente'}</span>
                   </button>

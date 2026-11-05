@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Instagram, Send, CheckCircle2 } from 'lucide-react';
+import { Instagram, Send, CheckCircle2, Share2, Gift, Heart, Sparkles } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface FooterProps {
   onSelectCategory: (categoryId: string) => void;
@@ -8,6 +9,8 @@ interface FooterProps {
   onOpenContact: () => void;
   onOpenHelpModal: (topic: string) => void;
   onOpenOrderTracking?: () => void;
+  onOpenCustomerProfile?: () => void;
+  onOpenAdmin?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -17,9 +20,13 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenContact,
   onOpenHelpModal,
   onOpenOrderTracking,
+  onOpenCustomerProfile,
+  onOpenAdmin,
 }) => {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [copiedShare, setCopiedShare] = useState(false);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,12 +39,55 @@ export const Footer: React.FC<FooterProps> = ({
     }
   };
 
+  const handleShareWithFriend = () => {
+    const shareText = `🌻 Olá! Dá uma vista de olhos na Janley Store — peças incríveis e personalizadas feitas em impressão 3D em Guimarães, Portugal: https://janleystore.pt`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    window.open(whatsappUrl, '_blank');
+    setCopiedShare(true);
+    setTimeout(() => setCopiedShare(false), 4000);
+  };
+
   return (
-    <footer className="bg-white border-t border-[#f5e3df] pt-14 pb-8 transition-colors">
+    <footer className="bg-white border-t border-slate-200/80 pt-12 pb-8 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 pb-12 border-b border-[#fae7e4]">
+        {/* Referral & Incentive Banner: "Indicar a um amigo" */}
+        <div className="mb-12 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-5 sm:p-7 border border-slate-700/80 flex flex-col md:flex-row items-center justify-between gap-5 shadow-md">
+          <div className="flex items-center gap-4 text-center md:text-left">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+              <Gift className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 justify-center md:justify-start">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                  {t('footer_referral_badge')}
+                </span>
+                <span className="text-[10px] font-bold bg-slate-800 text-amber-300 px-2.5 py-0.5 rounded-full border border-slate-700">
+                  {t('footer_referral_sub')}
+                </span>
+              </div>
+              <h3 className="font-serif-title text-base sm:text-lg font-bold text-white mt-0.5">
+                {t('footer_referral_title')}
+              </h3>
+              <p className="text-xs text-slate-300 mt-0.5">
+                {t('footer_referral_desc')}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleShareWithFriend}
+            className="flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider py-3 px-5 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-98 group"
+          >
+            <Share2 className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+            <span>{t('footer_referral_btn')}</span>
+          </button>
+        </div>
+
+        {/* Main Footer Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-8 pb-10 border-b border-slate-100">
           {/* Col 1: Brand Info & Socials */}
-          <div className="lg:col-span-4 space-y-4">
+          <div className="lg:col-span-4 space-y-3.5">
             <div className="flex items-center">
               <img
                 src="/assets/aistudio/LOGO_JANLEY_ofc.pdf_52899af3.png"
@@ -46,47 +96,42 @@ export const Footer: React.FC<FooterProps> = ({
               />
             </div>
 
-            <p className="text-sm text-[#664b45] leading-relaxed max-w-sm">
-              Criatividade, precisão e design em cada detalhe. Peças exclusivas em impressão 3D fabricadas em <strong>Guimarães, Braga - Portugal</strong> 🇵🇹 com entregas para Portugal inteiro via <strong>CTT Expresso, Uber Flash ou Recolha no Atelier</strong>.
+            <p className="text-xs sm:text-sm text-[#5c3a1e] leading-relaxed max-w-sm">
+              {t('footer_desc')}
             </p>
 
-            <div className="flex items-center gap-3 pt-2">
-              {/* Instagram */}
+            <div className="flex items-center gap-2.5 pt-1">
               <a
                 href="https://www.instagram.com/janleystoreofc"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-9 px-3 rounded-full bg-[#fdeef0] hover:bg-[#fcd7df] text-[#f43f7a] flex items-center gap-1.5 text-xs font-semibold transition-transform hover:scale-105 shadow-2xs"
-                aria-label="Instagram @janleystoreofc"
+                className="h-8 px-3 rounded-full bg-[#fef8ed] hover:bg-[#fde68a]/60 text-[#b45309] border border-[#fed7aa] flex items-center gap-1.5 text-xs font-bold transition-transform hover:scale-105 shadow-2xs"
                 title="@janleystoreofc"
               >
-                <Instagram className="w-4 h-4" />
+                <Instagram className="w-3.5 h-3.5" />
                 <span>@janleystoreofc</span>
               </a>
 
-              {/* TikTok */}
               <a
                 href="https://www.tiktok.com/@janleystoreofc"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-[#fdeef0] hover:bg-[#fcd7df] text-[#f43f7a] flex items-center justify-center transition-transform hover:scale-110 shadow-2xs"
-                aria-label="TikTok @janleystoreofc"
-                title="@janleystoreofc"
+                className="w-8 h-8 rounded-full bg-[#fef8ed] hover:bg-[#fde68a]/60 text-[#b45309] border border-[#fed7aa] flex items-center justify-center transition-transform hover:scale-110 shadow-2xs"
+                title="TikTok @janleystoreofc"
               >
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                   <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298 0 .59.046.87.135V9.4a6.35 6.35 0 0 0-.87-.06 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 9.79 5.38 6.27 6.27 0 0 0 2.89-5.32V8.41a8.27 8.27 0 0 0 4.67 1.43v-3.15z" />
                 </svg>
               </a>
 
-              {/* WhatsApp */}
               <a
-                href="https://wa.me/351935742686?text=Ol%C3%A1%2C%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20as%20pe%C3%A7as%203D%20da%20Janley%20Store"
+                href="https://wa.me/351935742686?text=Ol%C3%A1%20Janley%20Store!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20as%20pe%C3%A7as%203D."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-[#fdeef0] hover:bg-[#fcd7df] text-[#25D366] flex items-center justify-center transition-transform hover:scale-110 shadow-2xs"
-                aria-label="WhatsApp Janley Store"
+                className="w-8 h-8 rounded-full bg-[#fef8ed] hover:bg-emerald-50 text-[#008f51] border border-[#fed7aa] flex items-center justify-center transition-transform hover:scale-110 shadow-2xs"
+                title="WhatsApp Janley Store"
               >
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                   <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19.01L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z" />
                 </svg>
               </a>
@@ -94,17 +139,17 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
 
           {/* Col 2: Links Rápidos */}
-          <div className="lg:col-span-2 space-y-3">
-            <h3 className="text-sm font-bold text-[#33221e] tracking-tight">
-              Links Rápidos
+          <div className="lg:col-span-2 space-y-2.5">
+            <h3 className="text-xs font-bold text-[#3d2314] tracking-tight uppercase">
+              {t('footer_quick_links')}
             </h3>
-            <ul className="space-y-2 text-sm text-[#664b45]">
+            <ul className="space-y-1.5 text-xs text-[#5c3a1e]">
               <li>
                 <button
                   onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  className="hover:text-[#f43f7a] transition-colors cursor-pointer"
+                  className="hover:text-[#d97706] transition-colors cursor-pointer"
                 >
-                  Início
+                  {t('inicio')}
                 </button>
               </li>
               <li>
@@ -113,9 +158,9 @@ export const Footer: React.FC<FooterProps> = ({
                     const el = document.getElementById('produtos-section');
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="hover:text-[#f43f7a] transition-colors cursor-pointer"
+                  className="hover:text-[#d97706] transition-colors cursor-pointer"
                 >
-                  Loja
+                  {t('loja')}
                 </button>
               </li>
               <li>
@@ -124,173 +169,140 @@ export const Footer: React.FC<FooterProps> = ({
                     const el = document.getElementById('categorias-section');
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="hover:text-[#f43f7a] transition-colors cursor-pointer"
+                  className="hover:text-[#d97706] transition-colors cursor-pointer"
                 >
-                  Categorias
+                  {t('categorias')}
                 </button>
               </li>
               <li>
                 <button
                   onClick={onOpenCustomModal}
-                  className="hover:text-[#f43f7a] transition-colors cursor-pointer"
+                  className="hover:text-[#d97706] transition-colors cursor-pointer"
                 >
-                  Personalizados
+                  {t('personalizados')}
                 </button>
               </li>
               <li>
                 <button
                   onClick={onOpenAbout}
-                  className="hover:text-[#f43f7a] transition-colors cursor-pointer"
+                  className="hover:text-[#d97706] transition-colors cursor-pointer"
                 >
-                  Sobre nós
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={onOpenContact}
-                  className="hover:text-[#f43f7a] transition-colors cursor-pointer"
-                >
-                  Contacto
+                  {t('sobre')}
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Col 3: Ajuda ao Cliente */}
-          <div className="lg:col-span-3 space-y-3">
-            <h3 className="text-sm font-bold text-[#33221e] tracking-tight">
-              Ajuda ao Cliente
+          {/* Col 3: Apoio ao Cliente */}
+          <div className="lg:col-span-3 space-y-2.5">
+            <h3 className="text-xs font-bold text-[#3d2314] tracking-tight uppercase">
+              {t('footer_support_title')}
             </h3>
-            <ul className="space-y-2 text-sm text-[#664b45]">
+            <ul className="space-y-1.5 text-xs text-[#5c3a1e]">
+              {onOpenOrderTracking && (
+                <li>
+                  <button
+                    onClick={onOpenOrderTracking}
+                    className="font-bold text-[#d97706] hover:underline cursor-pointer"
+                  >
+                    {t('rastrear')}
+                  </button>
+                </li>
+              )}
+              {onOpenCustomerProfile && (
+                <li>
+                  <button
+                    onClick={onOpenCustomerProfile}
+                    className="hover:text-[#d97706] transition-colors cursor-pointer"
+                  >
+                    {t('favoritos')}
+                  </button>
+                </li>
+              )}
               <li>
                 <button
-                  onClick={() => onOpenHelpModal('Minha Conta')}
-                  className="hover:text-[#f43f7a] transition-colors cursor-pointer"
+                  onClick={onOpenContact}
+                  className="hover:text-[#d97706] transition-colors cursor-pointer"
                 >
-                  Minha Conta
+                  {t('contacto')}
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => {
-                    if (onOpenOrderTracking) {
-                      onOpenOrderTracking();
-                    } else {
-                      onOpenHelpModal('Acompanhamento de Encomenda');
-                    }
-                  }}
-                  className="hover:text-[#f43f7a] transition-colors cursor-pointer"
+                  onClick={() => onOpenHelpModal('Envios e Prazos')}
+                  className="hover:text-[#d97706] transition-colors cursor-pointer"
                 >
-                  Acompanhamento de Encomenda
+                  Envios CTT & Uber Flash
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => onOpenHelpModal('Envios e Entregas')}
-                  className="hover:text-[#f43f7a] transition-colors cursor-pointer"
+                  onClick={() => onOpenHelpModal('Pagamento MB WAY')}
+                  className="hover:text-[#d97706] transition-colors cursor-pointer"
                 >
-                  Envios e Entregas
+                  Pagamento por MB WAY
                 </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onOpenHelpModal('Trocas e Devoluções')}
-                  className="hover:text-[#f43f7a] transition-colors cursor-pointer"
-                >
-                  Trocas e Devoluções
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onOpenHelpModal('Termos e Condições')}
-                  className="hover:text-[#f43f7a] transition-colors cursor-pointer"
-                >
-                  Termos e Condições
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onOpenHelpModal('Política de Privacidade')}
-                  className="hover:text-[#f43f7a] transition-colors cursor-pointer"
-                >
-                  Política de Privacidade
-                </button>
-              </li>
-              <li>
-                <a
-                  href="https://www.livroreclamacoes.pt"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-[#f43f7a] transition-colors inline-block"
-                >
-                  Livro de Reclamações
-                </a>
               </li>
             </ul>
           </div>
 
           {/* Col 4: Newsletter */}
-          <div className="lg:col-span-3 space-y-3">
-            <h3 className="text-sm font-bold text-[#33221e] tracking-tight">
-              Newsletter
+          <div className="lg:col-span-3 space-y-2.5">
+            <h3 className="text-xs font-bold text-[#3d2314] tracking-tight uppercase">
+              {t('footer_newsletter_title')}
             </h3>
-            <p className="text-sm text-[#664b45] leading-relaxed">
-              Subscreve para receber novidades e ofertas exclusivas.
+            <p className="text-xs text-[#5c3a1e] leading-relaxed">
+              {t('footer_newsletter_desc')}
             </p>
 
             <form onSubmit={handleSubscribe} className="space-y-2">
-              <div className="relative">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="O teu email"
-                  required
-                  className="w-full bg-white border border-[#d8c2bd] focus:border-[#f43f7a] focus:ring-1 focus:ring-[#f43f7a] rounded-lg px-3.5 py-2.5 text-sm text-[#33221e] placeholder:text-[#9c7d76] outline-hidden shadow-2xs transition-all"
-                />
-              </div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('footer_newsletter_placeholder')}
+                required
+                className="w-full bg-[#fef8ed] border border-[#fed7aa] focus:border-[#d97706] rounded-xl px-3 py-2 text-xs text-[#3d2314] placeholder:text-[#9c7d76] outline-hidden shadow-2xs"
+              />
               <button
                 type="submit"
-                className="w-full bg-[#f43f7a] hover:bg-[#e11d48] text-white font-bold text-xs tracking-wider uppercase py-2.5 px-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer active:scale-98"
+                className="w-full bg-[#d97706] hover:bg-[#b45309] text-white font-bold text-xs uppercase tracking-wider py-2.5 px-3 rounded-xl shadow-xs transition-all cursor-pointer"
               >
-                SUBSCREVER
+                {t('footer_newsletter_btn')}
               </button>
             </form>
 
             {subscribed && (
-              <div className="flex items-center gap-2 text-xs text-emerald-600 bg-emerald-50 p-2 rounded-lg border border-emerald-200">
-                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+              <div className="flex items-center gap-1.5 text-xs text-[#008f51] bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
                 <span>Obrigado! Ficarás a par de todas as novidades Janley Store.</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Bottom Bar: Copyright, MB WAY payment only & Delivery notice */}
-        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#7d605a] border-t border-[#fce9e5] mt-2">
-          <div>
-            © {new Date().getFullYear()} Janley Store. Guimarães, Braga - Portugal 🇵🇹. Todos os direitos reservados.
+        {/* Compact Footer Bottom Bar */}
+        <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-[#78350f]">
+          {/* Compact location and delivery one-liner */}
+          <div className="text-center md:text-left font-medium flex items-center gap-2">
+            <span>{t('footer_delivery_bottom')}</span>
+            {onOpenAdmin && (
+              <button
+                onClick={onOpenAdmin}
+                className="hidden sm:inline-block text-[11px] text-[#b45309] hover:underline cursor-pointer opacity-70 hover:opacity-100"
+                title="Área de Administração"
+              >
+                {t('footer_admin_link')}
+              </button>
+            )}
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {/* Delivery Methods */}
-            <div className="text-[11px] text-[#6d4f48] bg-[#faf5f3] px-3 py-1.5 rounded-xl border border-[#fae4e0] flex items-center gap-1.5">
-              <span className="font-bold text-[#33221e]">Entregas:</span>
-              <span className="text-[#f43f7a] font-semibold">CTT Expresso</span>
-              <span>•</span>
-              <span className="text-[#f43f7a] font-semibold">Uber Flash</span>
-              <span>•</span>
-              <span>Recolha no Atelier</span>
-            </div>
-
-            {/* Exclusive Payment: MB WAY ONLY */}
-            <div className="flex items-center gap-2 bg-[#fdf5f4] border border-[#fae2dc] px-3 py-1.5 rounded-xl shadow-2xs">
-              <span className="text-[11px] text-[#735953] font-medium">Pagamento:</span>
-              <div className="h-6 px-2.5 bg-white border border-[#f3ccc3] rounded-lg flex items-center gap-1.5 shadow-2xs">
-                <span className="bg-black text-white px-1 py-0.5 rounded text-[8px] font-black">MB</span>
-                <span className="text-[#008f51] font-black text-xs">WAY</span>
-              </div>
-              <span className="text-[10px] text-[#8c6760] font-semibold">(Aceitamos apenas MB WAY)</span>
+          {/* Payment MB WAY badge */}
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold text-[#5c3a1e]">{t('footer_payment_exclusive')}</span>
+            <div className="h-6 px-2.5 bg-white border border-[#fed7aa] rounded-lg flex items-center gap-1 shadow-2xs">
+              <span className="bg-black text-white px-1 py-0.5 rounded text-[8px] font-black">MB</span>
+              <span className="text-[#008f51] font-black text-xs">WAY</span>
             </div>
           </div>
         </div>

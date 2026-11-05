@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Sparkles, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface HeroProps {
   onExploreProducts: () => void;
@@ -7,22 +8,21 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ onExploreProducts, onOpenCustomModal }) => {
+  const { t } = useLanguage();
   const [activeSlide, setActiveSlide] = useState(0);
 
   const slides = [
     {
-      titleLine1: 'Ideias que',
-      titleLine2: 'ganham forma.',
-      subtitle:
-        'Produtos únicos, personalizados e feitos com tecnologia de impressão 3D. Descobre peças criativas para o teu dia a dia.',
+      titleLine1: t('hero_slide1_title1'),
+      titleLine2: t('hero_slide1_title2'),
+      subtitle: t('hero_slide1_subtitle'),
       image: '/images/hero_products_clean.png',
       alt: 'Peças em impressão 3D da Janley Store - Suporte de telemóvel, vasos e organizadores',
     },
     {
-      titleLine1: 'Design & arte',
-      titleLine2: 'para o teu espaço.',
-      subtitle:
-        'Decoração moderna fabricada camada a camada em Guimarães com filamentos sustentáveis de alta precisão.',
+      titleLine1: t('hero_slide2_title1'),
+      titleLine2: t('hero_slide2_title2'),
+      subtitle: t('hero_slide2_subtitle'),
       image: '/images/test_banner.png',
       alt: 'Decoração e peças personalizadas Janley Store',
     },
@@ -39,50 +39,50 @@ export const Hero: React.FC<HeroProps> = ({ onExploreProducts, onOpenCustomModal
   const current = slides[activeSlide];
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#fcedeb] via-[#fcf2ee] to-[#faf5f2] py-8 sm:py-12 md:py-16 transition-colors">
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#f8fafc] via-[#ffffff] to-[#f1f5f9]/40 py-8 sm:py-12 md:py-16 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Text Content */}
           <div className="lg:col-span-6 z-10 space-y-6 text-center lg:text-left">
             <div className="space-y-1">
-              <h1 className="font-serif-title text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-bold tracking-tight text-[#33221e] leading-[1.1]">
+              <h1 className="font-serif-title text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-bold tracking-tight text-slate-900 leading-[1.1]">
                 {current.titleLine1} <br />
-                <span className="text-[#f43f7a] font-serif-title">{current.titleLine2}</span>
+                <span className="text-amber-500 font-serif-title">{current.titleLine2}</span>
               </h1>
             </div>
 
-            <p className="text-[#5f4640] text-base sm:text-lg md:text-xl font-normal leading-relaxed max-w-xl mx-auto lg:mx-0">
+            <p className="text-slate-600 text-base sm:text-lg md:text-xl font-normal leading-relaxed max-w-xl mx-auto lg:mx-0">
               {current.subtitle}
             </p>
 
-            {/* CTAs */}
+            {/* CTAs with micro-effects */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
               <button
                 onClick={onExploreProducts}
-                className="bg-[#f43f7a] hover:bg-[#e11d48] text-white font-bold text-xs sm:text-sm tracking-wider uppercase px-7 py-3.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 transform active:scale-98"
+                className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs sm:text-sm tracking-wider uppercase px-7 py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 transform hover:-translate-y-0.5 active:scale-98"
               >
-                <span>VER PRODUTOS</span>
+                <span>{t('hero_btn_explore')}</span>
               </button>
 
               <button
                 onClick={onOpenCustomModal}
-                className="bg-white hover:bg-[#fff7f8] text-[#33221e] border border-[#d9c5c1] font-bold text-xs sm:text-sm tracking-wider uppercase px-6 py-3.5 rounded-lg shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 transform active:scale-98"
+                className="bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-xs sm:text-sm tracking-wider uppercase px-6 py-3.5 rounded-xl shadow-xs hover:shadow-md hover:border-amber-400 transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 transform hover:-translate-y-0.5 active:scale-98 group"
               >
-                <Sparkles className="w-4 h-4 text-[#f43f7a]" />
-                <span>CRIAR PERSONALIZADO</span>
+                <Sparkles className="w-4 h-4 text-amber-500 group-hover:rotate-12 transition-transform" />
+                <span>{t('hero_btn_custom')}</span>
               </button>
             </div>
 
             {/* Carousel navigation dots */}
             <div className="flex items-center justify-center lg:justify-start gap-2 pt-6">
-              {[0, 1, 2, 3].map((dotIdx) => (
+              {[0, 1].map((dotIdx) => (
                 <button
                   key={dotIdx}
-                  onClick={() => setActiveSlide(dotIdx % slides.length)}
-                  className={`h-2.5 rounded-full transition-all duration-300 ${
-                    (dotIdx % slides.length) === activeSlide
-                      ? 'w-7 bg-[#f43f7a]'
-                      : 'w-2.5 bg-[#dfcec9] hover:bg-[#c9b3ad]'
+                  onClick={() => setActiveSlide(dotIdx)}
+                  className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                    dotIdx === activeSlide
+                      ? 'w-7 bg-amber-500'
+                      : 'w-2.5 bg-slate-200 hover:bg-slate-300'
                   }`}
                   aria-label={`Slide ${dotIdx + 1}`}
                 />
@@ -93,7 +93,7 @@ export const Hero: React.FC<HeroProps> = ({ onExploreProducts, onOpenCustomModal
           {/* Right Hero Product Composition */}
           <div className="lg:col-span-6 relative flex justify-center lg:justify-end">
             <div className="relative w-full max-w-[560px] group">
-              <div className="relative rounded-2xl overflow-hidden shadow-sm transition-transform duration-500 hover:scale-[1.01]">
+              <div className="relative rounded-2xl overflow-hidden shadow-xs transition-transform duration-500 hover:scale-[1.01]">
                 <img
                   src={current.image}
                   alt={current.alt}

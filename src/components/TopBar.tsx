@@ -1,77 +1,51 @@
 import React from 'react';
-import { Truck, Phone, Mail, Instagram, PackageSearch } from 'lucide-react';
+import { Truck, Phone, Globe } from 'lucide-react';
+import { useLanguage, Language } from '../context/LanguageContext';
 
 interface TopBarProps {
   onOpenContact?: () => void;
   onOpenOrderTracking?: () => void;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ onOpenContact, onOpenOrderTracking }) => {
-  return (
-    <div className="bg-[#fdedea] text-[#6b3f37] text-xs py-2 px-4 sm:px-6 lg:px-8 border-b border-[#fbdad2]/50 transition-colors">
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-        {/* Left: Free delivery notice & tracking quick link */}
-        <div className="flex items-center gap-4 font-medium tracking-wide">
-          <div className="flex items-center gap-2">
-            <Truck className="w-4 h-4 text-[#f43f7a]" />
-            <span>Guimarães, Braga • Entregas CTT, Uber ou Recolha em todo Portugal</span>
-          </div>
+export const TopBar: React.FC<TopBarProps> = () => {
+  const { language, setLanguage, t } = useLanguage();
 
-          {onOpenOrderTracking && (
-            <button
-              onClick={onOpenOrderTracking}
-              className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-bold text-[#f43f7a] hover:text-[#d11c58] hover:underline cursor-pointer bg-white/70 px-2.5 py-0.5 rounded-full border border-[#f5cfc7] shadow-2xs"
-            >
-              <PackageSearch className="w-3.5 h-3.5" />
-              <span>Rastrear Encomenda</span>
-            </button>
-          )}
+  return (
+    <div className="bg-slate-950 text-slate-300 text-[11px] py-1 px-3 sm:px-6 border-b border-slate-800/80 transition-all">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 h-6">
+        {/* Left: Compact delivery summary */}
+        <div className="flex items-center gap-1.5 min-w-0 font-medium">
+          <Truck className="w-3 h-3 text-amber-400 flex-shrink-0" />
+          <span className="truncate text-slate-300">
+            {t('entrega_info')}
+          </span>
         </div>
 
-        {/* Right: Direct contacts & Socials */}
-        <div className="flex items-center gap-4 sm:gap-6 text-[11px] sm:text-xs">
+        {/* Right: Only essential Contact & Language Selector */}
+        <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
           <a
             href="tel:+351935742686"
-            className="flex items-center gap-1.5 hover:text-[#f43f7a] transition-colors"
+            className="hidden xs:flex items-center gap-1 text-slate-300 hover:text-amber-400 transition-colors"
             title="Ligar para a Janley Store"
           >
-            <Phone className="w-3.5 h-3.5 text-[#f43f7a]" />
-            <span className="font-medium">+351 935 742 686</span>
+            <Phone className="w-3 h-3 text-amber-400" />
+            <span className="font-semibold text-[10px] sm:text-[11px]">+351 935 742 686</span>
           </a>
 
-          <a
-            href="mailto:janleystorebr@gmail.com"
-            className="hidden md:flex items-center gap-1.5 hover:text-[#f43f7a] transition-colors"
-            title="Enviar e-mail para Janley Store"
-          >
-            <Mail className="w-3.5 h-3.5 text-[#f43f7a]" />
-            <span>janleystorebr@gmail.com</span>
-          </a>
-
-          <div className="flex items-center gap-2.5 pl-2 border-l border-[#ecd0c9]">
-            <a
-              href="https://www.instagram.com/janleystoreofc"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram @janleystoreofc"
-              title="@janleystoreofc"
-              className="text-[#6b3f37] hover:text-[#f43f7a] transition-transform hover:scale-110"
+          {/* Minimalist Language Switcher */}
+          <div className="flex items-center gap-1 text-[10px] sm:text-[11px] text-slate-300 pl-2 border-l border-slate-800">
+            <Globe className="w-3 h-3 text-amber-400" />
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
+              className="bg-transparent text-[10px] sm:text-[11px] font-semibold text-slate-200 hover:text-amber-400 focus:outline-hidden cursor-pointer"
+              aria-label="Idioma / Language"
             >
-              <Instagram className="w-3.5 h-3.5" />
-            </a>
-            {/* Custom TikTok icon */}
-            <a
-              href="https://www.tiktok.com/@janleystoreofc"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="TikTok @janleystoreofc"
-              title="@janleystoreofc"
-              className="text-[#6b3f37] hover:text-[#f43f7a] transition-transform hover:scale-110"
-            >
-              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298 0 .59.046.87.135V9.4a6.35 6.35 0 0 0-.87-.06 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 9.79 5.38 6.27 6.27 0 0 0 2.89-5.32V8.41a8.27 8.27 0 0 0 4.67 1.43v-3.15z" />
-              </svg>
-            </a>
+              <option value="pt" className="bg-slate-900 text-white">PT 🇵🇹</option>
+              <option value="en" className="bg-slate-900 text-white">EN 🇬🇧</option>
+              <option value="es" className="bg-slate-900 text-white">ES 🇪🇸</option>
+              <option value="fr" className="bg-slate-900 text-white">FR 🇫🇷</option>
+            </select>
           </div>
         </div>
       </div>

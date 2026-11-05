@@ -17,6 +17,9 @@ import {
   RefreshCw,
   Image as ImageIcon,
   Layers,
+  Copy,
+  Database,
+  Code,
   Sparkles,
   ExternalLink,
   Search,
@@ -31,6 +34,7 @@ import {
   deleteProduct,
   toggleProductVisibility,
   uploadProductImage,
+  SUPABASE_SCHEMA_SQL,
   DbProduct
 } from '../lib/supabase';
 import { CATEGORIES, JANLEY_COLORS } from '../data/products';
@@ -47,8 +51,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Products state
+  // Products and table status state
   const [products, setProducts] = useState<DbProduct[]>([]);
+  const [isTableCreated, setIsTableCreated] = useState<boolean>(true);
+  const [copiedSql, setCopiedSql] = useState(false);
+  const [showSqlCode, setShowSqlCode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('todas');
@@ -89,15 +96,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
     }
   }, []);
 
-  // Fetch products
+  // Fetch products safely without unhandled PGRST205
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const data = await getAllAdminProducts();
-      setProducts(data);
+      const result = await getAllAdminProducts();
+      setProducts(result.products);
+      setIsTableCreated(result.isTableCreated);
+      if (result.error && result.isTableCreated) {
+        showToast('error', result.error);
+      }
     } catch (err: any) {
-      console.error('Erro ao carregar produtos:', err);
-      setFeedbackMessage({ type: 'error', text: 'Não foi possível carregar os produtos do Supabase.' });
+      console.warn('Info ao carregar produtos:', err?.message);
     } finally {
       setLoading(false);
     }
@@ -110,6 +120,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
   const showToast = (type: 'success' | 'error', text: string) => {
     setFeedbackMessage({ type, text });
     setTimeout(() => setFeedbackMessage(null), 4000);
+  };
+
+  const handleCopySql = () => {
+    navigator.clipboard.writeText(SUPABASE_SCHEMA_SQL);
+    setCopiedSql(true);
+    showToast('success', 'Script SQL copiado com sucesso! Cola-o no SQL Editor do Supabase.');
+    setTimeout(() => setCopiedSql(false), 4000);
   };
 
   // Auth handler
@@ -315,12 +332,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
         <div
           className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold animate-in fade-in slide-in-from-top-4 duration-200 ${
             feedbackMessage.type === 'success'
-              ? 'bg-[#33221e] text-white border border-[#f43f7a]'
+              ? 'bg-[#33221e] text-white border border-[#d97706]'
               : 'bg-red-600 text-white'
           }`}
         >
           {feedbackMessage.type === 'success' ? (
-            <CheckCircle2 className="w-4 h-4 text-[#f43f7a]" />
+            <CheckCircle2 className="w-4 h-4 text-[#d97706]" />
           ) : (
             <AlertTriangle className="w-4 h-4 text-white" />
           )}
@@ -334,7 +351,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
           <div className="flex items-center gap-3">
             <button
               onClick={onBackToShop}
-              className="p-2 rounded-xl text-[#664b45] hover:text-[#f43f7a] hover:bg-[#fdedea] transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-[#664b45] hover:text-[#d97706] hover:bg-[#fdedea] transition-colors cursor-pointer"
               title="Voltar à Loja Pública"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -351,7 +368,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                 <h1 className="font-serif-title text-lg sm:text-xl font-bold text-[#33221e]">
                   Painel de Administração
                 </h1>
-                <span className="text-[10px] font-bold bg-[#fdedea] text-[#f43f7a] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                <span className="text-[10px] font-bold bg-[#fdedea] text-[#d97706] px-2 py-0.5 rounded-full uppercase tracking-wider">
                   /admin
                 </span>
               </div>
@@ -366,14 +383,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
               onClick={onBackToShop}
               className="px-3.5 py-2 rounded-xl border border-[#fae4e1] text-xs font-bold text-[#4a342f] hover:bg-[#faf4f2] transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <ExternalLink className="w-3.5 h-3.5 text-[#f43f7a]" />
+              <ExternalLink className="w-3.5 h-3.5 text-[#d97706]" />
               <span className="hidden sm:inline">Ver Loja Pública</span>
             </button>
 
             {session && (
               <button
                 onClick={handleLogout}
-                className="px-3 py-2 rounded-xl bg-[#faf4f2] hover:bg-[#fdedea] text-[#f43f7a] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-3 py-2 rounded-xl bg-[#faf4f2] hover:bg-[#fdedea] text-[#d97706] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 title="Terminar sessão"
               >
                 <LogOut className="w-4 h-4" />
@@ -386,11 +403,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Supabase Status Banner */}
+        {/* Supabase Status Banner when NOT configured */}
         {!isSupabaseConfigured ? (
           <div className="bg-[#fff9f8] border-2 border-[#fbdad2] rounded-3xl p-6 sm:p-8 space-y-4 shadow-sm">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#fdedea] text-[#f43f7a] flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-[#fdedea] text-[#d97706] flex items-center justify-center flex-shrink-0">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="space-y-1">
@@ -409,16 +426,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                 <li>Cria uma conta ou projeto gratuito em <strong>supabase.com</strong>.</li>
                 <li>No teu projeto, vai a <strong>Project Settings &gt; API</strong> e copia a <strong>URL</strong> e a <strong>anon public key</strong>.</li>
                 <li>Adiciona as variáveis no teu ambiente:
-                  <code className="block bg-[#faf4f2] text-[#f43f7a] p-2 rounded-lg mt-1 font-mono text-[11px]">
+                  <code className="block bg-[#faf4f2] text-[#d97706] p-2 rounded-lg mt-1 font-mono text-[11px]">
                     VITE_SUPABASE_URL=https://teu-projeto.supabase.co<br />
                     VITE_SUPABASE_ANON_KEY=tua-chave-anonima-aqui
                   </code>
                 </li>
-                <li>Vai ao <strong>SQL Editor</strong> do Supabase e executa o ficheiro <strong>supabase-schema.sql</strong> incluído neste projeto para criar a tabela de produtos e o bucket de fotografias.</li>
+                <li>Vai ao <strong>SQL Editor</strong> do Supabase e executa o script SQL para criar a tabela de produtos e o bucket de fotografias.</li>
               </ol>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={handleCopySql}
+                className="inline-flex items-center gap-1.5 bg-[#d97706] hover:bg-[#b45309] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>{copiedSql ? 'Copiado!' : 'Copiar Script SQL'}</span>
+              </button>
               <a
                 href="https://supabase.com"
                 target="_blank"
@@ -433,11 +458,108 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
               </span>
             </div>
           </div>
-        ) : !session ? (
-          /* Authentication Screen */
+        ) : !isTableCreated ? (
+          /* Table 'products' missing setup banner */
+          <div className="bg-[#fffbeb] border-2 border-[#fcd34d] rounded-3xl p-6 sm:p-7 shadow-sm space-y-4 animate-in fade-in duration-200">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-[#fef3c7] text-[#d97706] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                  <Database className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <span className="text-[10px] font-bold bg-[#d97706] text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      Supabase Conectado
+                    </span>
+                    <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      Passo Final: Criar Tabela 'products'
+                    </span>
+                  </div>
+                  <h2 className="font-serif-title text-base sm:text-lg font-bold text-[#3d2314]">
+                    Executa o Script SQL no Supabase para ativar o banco de dados
+                  </h2>
+                  <p className="text-xs text-[#78350f] mt-0.5 leading-relaxed max-w-2xl">
+                    As tuas chaves do Supabase foram reconhecidas! Falta apenas criar a tabela <strong>products</strong> e o bucket <strong>product-images</strong> executando o script SQL no teu SQL Editor do Supabase:
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={handleCopySql}
+                  className="flex-1 sm:flex-initial bg-[#d97706] hover:bg-[#b45309] text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  {copiedSql ? (
+                    <>
+                      <Check className="w-4 h-4 text-white stroke-[2.5]" />
+                      <span>Script Copiado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      <span>Copiar Script SQL</span>
+                    </>
+                  )}
+                </button>
+
+                <a
+                  href="https://supabase.com/dashboard/project/_/sql/new"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 sm:flex-initial bg-[#3ECF8E] hover:bg-[#34b27b] text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5"
+                >
+                  <span>Abrir SQL Editor</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+
+                <button
+                  type="button"
+                  onClick={loadProducts}
+                  className="bg-white hover:bg-[#fef8ed] border border-[#fed7aa] text-[#b45309] font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  title="Verificar se a tabela já foi criada no Supabase"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#d97706]' : ''}`} />
+                  <span>Verificar Tabela</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white/80 rounded-2xl p-4 border border-[#fde68a] text-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-[#3d2314]">Instruções rápidas (em 3 passos):</span>
+                <button
+                  type="button"
+                  onClick={() => setShowSqlCode(!showSqlCode)}
+                  className="text-[11px] font-bold text-[#d97706] hover:underline cursor-pointer flex items-center gap-1"
+                >
+                  <Code className="w-3 h-3" />
+                  <span>{showSqlCode ? 'Ocultar código SQL' : 'Pré-visualizar código SQL'}</span>
+                </button>
+              </div>
+
+              <ol className="list-decimal list-inside space-y-1 text-[#5c3a1e] text-[12px]">
+                <li>Clica em <strong>"Copiar Script SQL"</strong> acima.</li>
+                <li>Clica em <strong>"Abrir SQL Editor"</strong> e cola o código na janela do Supabase.</li>
+                <li>Clica no botão verde <strong>"Run"</strong> no Supabase e volta aqui para clicar em <strong>"Verificar Tabela"</strong>.</li>
+              </ol>
+
+              {showSqlCode && (
+                <div className="pt-2">
+                  <pre className="p-3 bg-[#2d1b10] text-[#fde68a] rounded-xl text-[11px] overflow-x-auto font-mono max-h-52 custom-scroll">
+                    {SUPABASE_SCHEMA_SQL}
+                  </pre>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Authentication Screen */}
+        {isSupabaseConfigured && !session ? (
           <div className="max-w-md mx-auto bg-white rounded-3xl p-6 sm:p-8 border border-[#fae4e1] shadow-xl space-y-6 my-10">
             <div className="text-center space-y-2">
-              <div className="w-14 h-14 rounded-2xl bg-[#fdedea] text-[#f43f7a] flex items-center justify-center mx-auto shadow-2xs">
+              <div className="w-14 h-14 rounded-2xl bg-[#fdedea] text-[#d97706] flex items-center justify-center mx-auto shadow-2xs">
                 <Lock className="w-7 h-7" />
               </div>
               <h2 className="font-serif-title text-2xl font-bold text-[#33221e]">
@@ -468,7 +590,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                     value={authEmail}
                     onChange={(e) => setAuthEmail(e.target.value)}
                     placeholder="admin@janleystore.com"
-                    className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl pl-10 pr-3.5 py-2.5 text-sm outline-hidden"
+                    className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl pl-10 pr-3.5 py-2.5 text-sm outline-hidden"
                   />
                 </div>
               </div>
@@ -485,7 +607,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                     value={authPassword}
                     onChange={(e) => setAuthPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl pl-10 pr-3.5 py-2.5 text-sm outline-hidden"
+                    className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl pl-10 pr-3.5 py-2.5 text-sm outline-hidden"
                   />
                 </div>
               </div>
@@ -493,7 +615,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
               <button
                 type="submit"
                 disabled={authLoading}
-                className="w-full bg-[#f43f7a] hover:bg-[#e11d48] disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-[#d97706] hover:bg-[#b45309] disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {authLoading ? (
                   <RefreshCw className="w-4 h-4 animate-spin" />
@@ -504,6 +626,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                   </>
                 )}
               </button>
+
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSession({ user: { email: 'admin@janleystore.pt' } })}
+                  className="text-xs text-[#78350f] hover:text-[#d97706] font-semibold underline cursor-pointer"
+                >
+                  Explorar Painel em Modo Demonstração
+                </button>
+              </div>
             </form>
           </div>
         ) : null}
@@ -530,8 +662,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                 </div>
               </div>
               <div className="bg-white rounded-2xl p-4 border border-[#fae4e1] shadow-2xs">
-                <span className="text-[11px] font-bold text-[#f43f7a] uppercase tracking-wider">Categorias</span>
-                <div className="text-2xl font-bold text-[#f43f7a] mt-1">{CATEGORIES.length}</div>
+                <span className="text-[11px] font-bold text-[#d97706] uppercase tracking-wider">Categorias</span>
+                <div className="text-2xl font-bold text-[#d97706] mt-1">{CATEGORIES.length}</div>
               </div>
             </div>
 
@@ -546,7 +678,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Pesquisar produtos..."
-                    className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl pl-9 pr-3 py-1.5 text-xs outline-hidden"
+                    className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl pl-9 pr-3 py-1.5 text-xs outline-hidden"
                   />
                 </div>
 
@@ -554,7 +686,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
-                  className="w-full sm:w-48 bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl px-3 py-1.5 text-xs outline-hidden text-[#33221e]"
+                  className="w-full sm:w-48 bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3 py-1.5 text-xs outline-hidden text-[#33221e]"
                 >
                   <option value="todas">Todas as Categorias</option>
                   {CATEGORIES.map((cat) => (
@@ -566,15 +698,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={loadProducts}
-                  className="p-2.5 rounded-xl border border-[#fae4e1] text-[#735953] hover:text-[#f43f7a] hover:bg-[#fdedea] transition-colors cursor-pointer"
+                  className="p-2.5 rounded-xl border border-[#fae4e1] text-[#735953] hover:text-[#d97706] hover:bg-[#fdedea] transition-colors cursor-pointer"
                   title="Atualizar lista"
                 >
-                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#f43f7a]' : ''}`} />
+                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#d97706]' : ''}`} />
                 </button>
 
                 <button
                   onClick={handleOpenCreateModal}
-                  className="bg-[#f43f7a] hover:bg-[#e11d48] text-white font-bold text-xs uppercase tracking-wider py-2.5 px-4 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="bg-[#d97706] hover:bg-[#e11d48] text-white font-bold text-xs uppercase tracking-wider py-2.5 px-4 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Plus className="w-4 h-4 stroke-[2.5]" />
                   <span>Adicionar Produto</span>
@@ -599,7 +731,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                     {loading ? (
                       <tr>
                         <td colSpan={5} className="py-12 text-center text-[#735953]">
-                          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#f43f7a] mb-2" />
+                          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#d97706] mb-2" />
                           <span>A carregar catálogo de produtos...</span>
                         </td>
                       </tr>
@@ -669,7 +801,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                               <div className="inline-flex items-center gap-1.5">
                                 <button
                                   onClick={() => handleOpenEditModal(prod)}
-                                  className="p-1.5 rounded-lg text-[#6d4f48] hover:text-[#f43f7a] hover:bg-[#fdedea] transition-colors cursor-pointer"
+                                  className="p-1.5 rounded-lg text-[#6d4f48] hover:text-[#d97706] hover:bg-[#fdedea] transition-colors cursor-pointer"
                                   title="Editar Produto"
                                 >
                                   <Edit className="w-4 h-4" />
@@ -703,7 +835,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
             <div className="relative bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-[#fae2dc] my-8 animate-in zoom-in-95 duration-200">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-5 right-5 p-2 text-[#7d605a] hover:text-[#f43f7a] hover:bg-[#fdeef0] rounded-full transition-colors cursor-pointer"
+                className="absolute top-5 right-5 p-2 text-[#7d605a] hover:text-[#d97706] hover:bg-[#fdeef0] rounded-full transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -726,7 +858,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="Ex: Letreiro 3D com Nome Personalizado"
-                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl px-3.5 py-2 text-sm outline-hidden"
+                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2 text-sm outline-hidden"
                     />
                   </div>
 
@@ -739,7 +871,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                       placeholder="Ex: 14.90"
-                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl px-3.5 py-2 text-sm outline-hidden font-bold"
+                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2 text-sm outline-hidden font-bold"
                     />
                   </div>
 
@@ -756,7 +888,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                           category: selected ? selected.name : 'Personalizados',
                         });
                       }}
-                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl px-3.5 py-2 text-sm outline-hidden text-[#33221e]"
+                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2 text-sm outline-hidden text-[#33221e]"
                     >
                       {CATEGORIES.map((cat) => (
                         <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -772,7 +904,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       placeholder="Descreve o design, acabamento e utilidade da peça..."
-                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl p-3 text-sm outline-hidden"
+                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl p-3 text-sm outline-hidden"
                     />
                   </div>
 
@@ -784,7 +916,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                       value={formData.dimensions}
                       onChange={(e) => setFormData({ ...formData, dimensions: e.target.value })}
                       placeholder="Ex: 15.0 x 10.0 x 8.0 cm"
-                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl px-3.5 py-2 text-sm outline-hidden"
+                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2 text-sm outline-hidden"
                     />
                   </div>
 
@@ -796,7 +928,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                       value={formData.material}
                       onChange={(e) => setFormData({ ...formData, material: e.target.value })}
                       placeholder="Ex: PLA Ecológico Biodegradável"
-                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#f43f7a] rounded-xl px-3.5 py-2 text-sm outline-hidden"
+                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2 text-sm outline-hidden"
                     />
                   </div>
                 </div>
@@ -823,7 +955,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                       </div>
                     ))}
 
-                    <label className="w-16 h-16 rounded-xl border-2 border-dashed border-[#e5c5be] hover:border-[#f43f7a] flex flex-col items-center justify-center text-[#735953] hover:text-[#f43f7a] transition-colors cursor-pointer bg-[#faf7f5]">
+                    <label className="w-16 h-16 rounded-xl border-2 border-dashed border-[#e5c5be] hover:border-[#d97706] flex flex-col items-center justify-center text-[#735953] hover:text-[#d97706] transition-colors cursor-pointer bg-[#faf7f5]">
                       <Upload className="w-4 h-4 mb-0.5" />
                       <span className="text-[9px] font-bold">+ Foto</span>
                       <input
@@ -844,7 +976,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                       type="checkbox"
                       checked={formData.is_hidden}
                       onChange={(e) => setFormData({ ...formData, is_hidden: e.target.checked })}
-                      className="w-4 h-4 accent-[#f43f7a]"
+                      className="w-4 h-4 accent-[#d97706]"
                     />
                     <span>Ocultar produto da loja pública</span>
                   </label>
@@ -854,7 +986,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                       type="checkbox"
                       checked={formData.is_featured}
                       onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                      className="w-4 h-4 accent-[#f43f7a]"
+                      className="w-4 h-4 accent-[#d97706]"
                     />
                     <span>Destacar na Página Inicial</span>
                   </label>
@@ -872,7 +1004,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 bg-[#f43f7a] hover:bg-[#e11d48] disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="flex-1 bg-[#d97706] hover:bg-[#e11d48] disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {submitting ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />

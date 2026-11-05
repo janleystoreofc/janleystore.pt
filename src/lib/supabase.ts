@@ -36,6 +36,110 @@ export interface DbProduct {
   created_at?: string;
 }
 
+// Full SQL setup script for Supabase
+export const SUPABASE_SCHEMA_SQL = `-- ============================================================
+-- JANLEY STORE - SUPABASE SCHEMA SQL
+-- Executa este script no SQL Editor do teu projeto Supabase Free
+-- ============================================================
+
+-- 1. Criar a tabela de produtos
+CREATE TABLE IF NOT EXISTS public.products (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    price NUMERIC(10, 2) NOT NULL,
+    description TEXT DEFAULT '',
+    category TEXT NOT NULL,
+    category_id TEXT NOT NULL,
+    images TEXT[] DEFAULT ARRAY[]::TEXT[],
+    image TEXT DEFAULT '',
+    colors JSONB DEFAULT '[]'::jsonb,
+    is_featured BOOLEAN DEFAULT false,
+    is_bestseller BOOLEAN DEFAULT false,
+    is_hidden BOOLEAN DEFAULT false,
+    dimensions TEXT DEFAULT '',
+    material TEXT DEFAULT 'PLA Ecológico de Alta Precisão',
+    rating NUMERIC(2, 1) DEFAULT 5.0,
+    reviews_count INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. Habilitar Row Level Security (RLS)
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+
+-- 3. Política: Leitura pública para produtos não ocultos
+DROP POLICY IF EXISTS "Public can view active products" ON public.products;
+CREATE POLICY "Public can view active products" ON public.products
+    FOR SELECT
+    USING (is_hidden = false);
+
+-- 4. Política: Utilizadores autenticados (Admin) têm controlo total
+DROP POLICY IF EXISTS "Admins have full access" ON public.products;
+CREATE POLICY "Admins have full access" ON public.products
+    FOR ALL
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
+-- 5. Criar bucket de armazenamento público para imagens de produtos
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('product-images', 'product-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 6. Política de Storage: Leitura pública de imagens
+DROP POLICY IF EXISTS "Public can view product images" ON storage.objects;
+CREATE POLICY "Public can view product images" ON storage.objects
+    FOR SELECT
+    USING (bucket_id = 'product-images');
+
+-- 7. Política de Storage: Admins autenticados podem enviar e gerir imagens
+DROP POLICY IF EXISTS "Admins can upload product images" ON storage.objects;
+CREATE POLICY "Admins can upload product images" ON storage.objects
+    FOR ALL
+    TO authenticated
+    USING (bucket_id = 'product-images')
+    WITH CHECK (bucket_id = 'product-images');
+`;
+
+// Helper to identify PostgREST PGRST205 or missing table errors
+export function isTableMissingError(error: any): boolean {
+  if (!error) return false;
+  const code = error.code || '';
+  const message = typeof error.message === 'string' ? error.message : '';
+  const details = typeof error.details === 'string' ? error.details : '';
+
+  return (
+    code === 'PGRST205' ||
+    message.includes('public.products') ||
+    message.includes('schema cache') ||
+    message.includes('relation "public.products" does not exist') ||
+    details.includes('public.products')
+  );
+}
+
+// Convert fallback products to DbProduct shape
+export function getFallbackDbProducts(): DbProduct[] {
+  return FALLBACK_PRODUCTS.map((p) => ({
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    description: p.description,
+    category: p.category,
+    category_id: p.categoryId,
+    images: [p.image],
+    image: p.image,
+    colors: p.colors,
+    is_featured: Boolean(p.isFeatured),
+    is_bestseller: Boolean(p.isBestseller),
+    is_hidden: false,
+    dimensions: p.dimensions,
+    material: p.material,
+    rating: p.rating,
+    reviews_count: p.reviewsCount,
+    created_at: new Date().toISOString(),
+  }));
+}
+
 // Convert DB product to UI Product
 export function mapDbProductToProduct(item: DbProduct): Product {
   const images = Array.isArray(item.images) && item.images.length > 0
@@ -73,66 +177,104 @@ export async function getPublicProducts(): Promise<Product[]> {
       .eq('is_hidden', false)
       .order('created_at', { ascending: false });
 
-    if (error || !data || data.length === 0) {
-      if (error) console.warn('Supabase fetch error, using initial catalog:', error.message);
+    if (error) {
+      if (!isTableMissingError(error)) {
+        console.warn('Supabase fetch error, using default catalog:', error.message);
+      }
+      return FALLBACK_PRODUCTS;
+    }
+
+    if (!data || data.length === 0) {
       return FALLBACK_PRODUCTS;
     }
 
     return (data as DbProduct[]).map(mapDbProductToProduct);
-  } catch (err) {
-    console.error('Error fetching public products from Supabase:', err);
+  } catch (err: any) {
+    if (!isTableMissingError(err)) {
+      console.warn('Error fetching public products from Supabase:', err?.message);
+    }
     return FALLBACK_PRODUCTS;
   }
 }
 
-// Admin panel: fetch all products (including hidden)
-export async function getAllAdminProducts(): Promise<DbProduct[]> {
+// Admin panel: fetch all products (including hidden), safely catching PGRST205
+export async function getAllAdminProducts(): Promise<{
+  products: DbProduct[];
+  isTableCreated: boolean;
+  error?: string;
+}> {
   if (!isSupabaseConfigured) {
-    // Return fallback converted to DbProduct representation
-    return FALLBACK_PRODUCTS.map((p) => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      description: p.description,
-      category: p.category,
-      category_id: p.categoryId,
-      images: [p.image],
-      image: p.image,
-      colors: p.colors,
-      is_featured: Boolean(p.isFeatured),
-      is_bestseller: Boolean(p.isBestseller),
-      is_hidden: false,
-      dimensions: p.dimensions,
-      material: p.material,
-      rating: p.rating,
-      reviews_count: p.reviewsCount,
-      created_at: new Date().toISOString(),
-    }));
+    return {
+      products: getFallbackDbProducts(),
+      isTableCreated: false,
+    };
   }
 
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (error) throw error;
-  return (data || []) as DbProduct[];
+    if (error) {
+      if (isTableMissingError(error)) {
+        return {
+          products: getFallbackDbProducts(),
+          isTableCreated: false,
+        };
+      }
+      return {
+        products: getFallbackDbProducts(),
+        isTableCreated: false,
+        error: error.message,
+      };
+    }
+
+    return {
+      products: (data || []) as DbProduct[],
+      isTableCreated: true,
+    };
+  } catch (err: any) {
+    if (isTableMissingError(err)) {
+      return {
+        products: getFallbackDbProducts(),
+        isTableCreated: false,
+      };
+    }
+    return {
+      products: getFallbackDbProducts(),
+      isTableCreated: false,
+      error: err?.message || 'Erro ao carregar produtos do Supabase',
+    };
+  }
 }
 
 // Admin: Insert new product
 export async function createProduct(product: Omit<DbProduct, 'id' | 'created_at'>): Promise<DbProduct> {
   if (!isSupabaseConfigured) {
-    throw new Error('Supabase não está configurado. Insere as credenciais VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no ficheiro .env');
+    throw new Error('Supabase não está configurado. Insere as credenciais no ficheiro .env');
   }
 
-  const { data, error } = await supabase
-    .from('products')
-    .insert([product])
-    .select()
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .insert([product])
+      .select()
+      .single();
 
-  if (error) throw error;
-  return data as DbProduct;
+    if (error) {
+      if (isTableMissingError(error)) {
+        throw new Error("A tabela 'products' ainda não foi criada no Supabase. Executa o script SQL no SQL Editor do Supabase.");
+      }
+      throw error;
+    }
+    return data as DbProduct;
+  } catch (err: any) {
+    if (isTableMissingError(err)) {
+      throw new Error("A tabela 'products' ainda não foi criada no Supabase. Executa o script SQL no SQL Editor do Supabase.");
+    }
+    throw err;
+  }
 }
 
 // Admin: Update product
@@ -141,15 +283,27 @@ export async function updateProduct(id: string, updates: Partial<DbProduct>): Pr
     throw new Error('Supabase não está configurado.');
   }
 
-  const { data, error } = await supabase
-    .from('products')
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('id', id)
-    .select()
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
 
-  if (error) throw error;
-  return data as DbProduct;
+    if (error) {
+      if (isTableMissingError(error)) {
+        throw new Error("A tabela 'products' ainda não foi criada no Supabase. Executa o script SQL no SQL Editor do Supabase.");
+      }
+      throw error;
+    }
+    return data as DbProduct;
+  } catch (err: any) {
+    if (isTableMissingError(err)) {
+      throw new Error("A tabela 'products' ainda não foi criada no Supabase. Executa o script SQL no SQL Editor do Supabase.");
+    }
+    throw err;
+  }
 }
 
 // Admin: Delete product
@@ -158,12 +312,24 @@ export async function deleteProduct(id: string): Promise<void> {
     throw new Error('Supabase não está configurado.');
   }
 
-  const { error } = await supabase
-    .from('products')
-    .delete()
-    .eq('id', id);
+  try {
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id);
 
-  if (error) throw error;
+    if (error) {
+      if (isTableMissingError(error)) {
+        throw new Error("A tabela 'products' ainda não foi criada no Supabase. Executa o script SQL no SQL Editor do Supabase.");
+      }
+      throw error;
+    }
+  } catch (err: any) {
+    if (isTableMissingError(err)) {
+      throw new Error("A tabela 'products' ainda não foi criada no Supabase. Executa o script SQL no SQL Editor do Supabase.");
+    }
+    throw err;
+  }
 }
 
 // Admin: Toggle visibility
@@ -187,7 +353,12 @@ export async function uploadProductImage(file: File): Promise<string> {
     .from('product-images')
     .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
-  if (uploadError) throw uploadError;
+  if (uploadError) {
+    if (uploadError.message.includes('bucket') || uploadError.message.includes('not found')) {
+      throw new Error("O bucket 'product-images' ainda não foi criado no Supabase. Executa o script SQL no SQL Editor.");
+    }
+    throw uploadError;
+  }
 
   const { data } = supabase.storage
     .from('product-images')
