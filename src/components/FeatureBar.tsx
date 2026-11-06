@@ -1,5 +1,5 @@
 import React from 'react';
-import { Truck, Award, Box, ShieldCheck } from 'lucide-react';
+import { Award, Box, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 export const FeatureBar: React.FC = () => {
@@ -7,50 +7,37 @@ export const FeatureBar: React.FC = () => {
 
   const features = [
     {
-      icon: Truck,
-      title: t('feature_delivery_title'),
-      subtitle: t('feature_delivery_sub'),
-    },
-    {
       icon: Award,
       title: t('feature_local_title'),
-      subtitle: t('feature_local_sub'),
     },
     {
       icon: Box,
       title: t('feature_custom_title'),
-      subtitle: t('feature_custom_sub'),
     },
     {
       icon: ShieldCheck,
       title: t('feature_payment_title'),
-      subtitle: t('feature_payment_sub'),
     },
   ];
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 sm:-mt-6 relative z-20">
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-4 sm:p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4 divide-y sm:divide-y-0 lg:divide-x divide-slate-100">
+    <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 -mt-3 sm:-mt-6 relative z-20">
+      <div className="bg-white rounded-xl sm:rounded-2xl border border-[#ebdcd3] shadow-[0_4px_20px_rgba(43,23,12,0.04)] p-2.5 sm:p-5">
+        <div className="grid grid-cols-3 divide-x divide-[#ebdcd3]">
           {features.map((feature, idx) => {
             const Icon = feature.icon;
             return (
               <div
                 key={idx}
-                className={`flex items-center gap-4 ${
-                  idx !== 0 ? 'pt-4 sm:pt-0 lg:pl-6' : ''
-                }`}
+                className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3.5 px-1 sm:px-4 text-center sm:text-left min-w-0"
               >
-                <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center flex-shrink-0 text-amber-600 shadow-2xs">
-                  <Icon className="w-6 h-6 stroke-[1.8]" />
+                <div className="w-7 h-7 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-[#fcf5f1] border border-[#e3d0c4] flex items-center justify-center flex-shrink-0 text-[#d97706] shadow-2xs">
+                  <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5 stroke-[1.8]" />
                 </div>
-                <div className="min-w-0">
-                  <h2 className="text-sm sm:text-base font-bold text-slate-900 truncate">
+                <div className="min-w-0 w-full sm:w-auto">
+                  <h2 className="text-[10px] sm:text-base font-bold text-[#2b170c] truncate leading-tight">
                     {feature.title}
                   </h2>
-                  <p className="text-xs sm:text-sm text-slate-500 truncate">
-                    {feature.subtitle}
-                  </p>
                 </div>
               </div>
             );

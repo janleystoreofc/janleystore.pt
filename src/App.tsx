@@ -164,11 +164,6 @@ function AppContent() {
 
         {/* 7. Aba de Orçamento Direto 3D via WhatsApp com Amostra e Quantidade */}
         <BudgetQuoteSection onBackToShop={handleExploreProducts} />
-
-        {/* 8. Customization Banner */}
-        <CustomizationBanner
-          onOpenCustomModal={() => setCustomModalOpen(true)}
-        />
       </main>
 
       {/* 9. Footer with Refer-a-friend WhatsApp button and MB WAY notice */}
@@ -264,26 +259,38 @@ function AppContent() {
         </div>
       )}
 
-      {/* Glowing 3D Custom Order Floating Action Button (Replaces WhatsApp) */}
+      {/* Interactive Sunflower Floating Action Button with Glow & Spin Effects */}
       <button
         type="button"
         onClick={() => setCustomModalOpen(true)}
         aria-label={t('floating_custom_title')}
-        className="fixed bottom-5 right-5 z-40 group flex items-center gap-2.5 bg-gradient-to-r from-[#d97706] to-[#f59e0b] hover:from-[#b45309] hover:to-[#d97706] text-white px-4 py-3 rounded-full shadow-[0_8px_25px_rgba(217,119,6,0.45)] hover:shadow-[0_12px_35px_rgba(217,119,6,0.65)] transition-all duration-300 hover:scale-105 active:scale-95 border-2 border-white/40 cursor-pointer backdrop-blur-xs"
+        className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 group flex items-center justify-center cursor-pointer focus:outline-hidden transition-transform duration-300 hover:scale-105 active:scale-95"
       >
-        <div className="relative flex items-center justify-center">
-          <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
-          </span>
-          <Sparkles className="w-5 h-5 text-white transition-transform group-hover:rotate-12 duration-300" />
+        {/* Floating Tooltip Label (Appears smoothly on hover) */}
+        <div className="hidden sm:flex absolute right-full mr-3 top-1/2 -translate-y-1/2 whitespace-nowrap bg-[#2b170c]/95 backdrop-blur-xs text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-xl border border-[#e3d0c4]/25 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0 items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-[#f59e0b] animate-spin" />
+          <span>{t('floating_custom_title')}</span>
         </div>
-        <div className="flex flex-col text-left leading-tight pr-0.5">
-          <span className="text-[12px] font-bold tracking-wide">
-            {t('floating_custom_title')}
-          </span>
-          <span className="text-[10px] text-amber-100 font-medium">
-            {t('floating_custom_sub')}
+
+        {/* Sunflower with organic warm glow and gentle hover spin */}
+        <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center">
+          {/* Warm Golden Glow Aura */}
+          <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-[#d97706] to-[#f59e0b] blur-md opacity-70 group-hover:opacity-100 transition-opacity animate-pulse" />
+
+          {/* Golden Rotating Radial Aura Ring */}
+          <div className="absolute -inset-1 rounded-full border border-dashed border-[#d97706]/40 animate-[spin_16s_linear_infinite] group-hover:border-[#d97706] transition-colors" />
+
+          {/* Sunflower Image */}
+          <img
+            src="/assets/aistudio/LOGO_JANLEY_ofc.pdf_791f71cf.png"
+            alt="Janley Store - Girassol 3D"
+            className="relative w-full h-full object-contain filter drop-shadow-[0_6px_16px_rgba(43,23,12,0.4)] transition-transform duration-700 ease-out group-hover:rotate-45 group-hover:scale-110 active:scale-95 select-none pointer-events-none"
+          />
+
+          {/* Tiny Golden Sparkle Notification Dot */}
+          <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 pointer-events-none">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f59e0b] opacity-80" />
+            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#d97706] border-2 border-white shadow-xs" />
           </span>
         </div>
       </button>

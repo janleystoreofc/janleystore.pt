@@ -11,7 +11,7 @@ interface LanguageContextType {
 const TRANSLATIONS: Record<Language, Record<string, string>> = {
   pt: {
     // TopBar & Header
-    entrega_info: 'Guimarães • Entregas CTT, Uber ou Recolha 🇵🇹',
+    entrega_info: 'Entregas para todo Portugal',
     rastrear: 'Rastrear Encomenda',
     contacto: 'Contacto',
     inicio: 'Início',
@@ -44,24 +44,24 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     feature_local_sub: 'Produção 3D artesanal local',
     feature_custom_title: 'Peças Sob Medida',
     feature_custom_sub: 'Cores, nomes & orçamentos',
-    feature_payment_title: 'Pagamento MB WAY',
+    feature_payment_title: 'MB WAY',
     feature_payment_sub: 'Aceitamos apenas MB WAY',
 
     // Categories Section
     categories_badge: 'Atelier 3D Guimarães',
     categories_title: 'Comprar por Categoria',
+    cat_natal: 'Natal',
+    cat_chaveiros: 'Chaveiros',
+    cat_gaming: 'Gaming',
     cat_personalizados: 'Personalizados',
     cat_decoracao: 'Decoração',
-    cat_suportes: 'Suportes',
-    cat_chaveiros: 'Chaveiros',
-    cat_vasos: 'Vasos',
-    cat_organizadores: 'Organizadores',
-    cat_colecionaveis: 'Colecionáveis',
-    cat_utilidades: 'Utilidades',
-    cat_luminarias: 'Luminárias',
-    cat_pets: 'Pets & Animais',
-    cat_festas: 'Lembranças & Festas',
-    cat_acessorios: 'Acessórios & Moda',
+    cat_lazer: 'Lazer',
+    cat_infantil: 'Infantil',
+    cat_organizacao: 'Organização',
+    cat_casa: 'Casa',
+    cat_futebol: 'Futebol',
+    cat_empresas: 'Empresas',
+    cat_outros: 'Outros',
 
     // Featured Products Section
     featured_title: 'Produtos em Destaque',
@@ -108,7 +108,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     footer_newsletter_desc: 'Subscreve para receber descontos e novas coleções de filamento 3D.',
     footer_newsletter_btn: 'Subscrever',
     footer_newsletter_placeholder: 'O teu email',
-    footer_delivery_bottom: 'Guimarães, Braga - Portugal 🇵🇹 • Entregas CTT, Uber ou Recolha em todo Portugal',
+    footer_delivery_bottom: 'ENVIAMOS POR CTT - UBER - RECOLHA',
     footer_payment_exclusive: 'Pagamento exclusivo:',
     footer_admin_link: '• Área Reservada (/admin)',
 
@@ -119,7 +119,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
 
   en: {
     // TopBar & Header
-    entrega_info: 'Guimarães • Delivery via CTT, Uber or Pickup 🇵🇹',
+    entrega_info: 'Deliveries across Portugal',
     rastrear: 'Track Order',
     contacto: 'Contact',
     inicio: 'Home',
@@ -152,24 +152,24 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     feature_local_sub: 'Local artisan 3D workshop',
     feature_custom_title: 'Made to Measure',
     feature_custom_sub: 'Custom colors, names & quotes',
-    feature_payment_title: 'MB WAY Payment',
+    feature_payment_title: 'MB WAY',
     feature_payment_sub: 'We accept MB WAY exclusively',
 
     // Categories Section
     categories_badge: '3D Atelier Guimarães',
     categories_title: 'Shop by Category',
-    cat_personalizados: 'Custom Orders',
-    cat_decoracao: 'Home Decor',
-    cat_suportes: 'Stands & Holders',
+    cat_natal: 'Christmas',
     cat_chaveiros: 'Keychains',
-    cat_vasos: 'Vases & Planters',
-    cat_organizadores: 'Organizers',
-    cat_colecionaveis: 'Collectibles',
-    cat_utilidades: 'Everyday Tools',
-    cat_luminarias: 'Lamps & Lights',
-    cat_pets: 'Pets & Animals',
-    cat_festas: 'Favors & Events',
-    cat_acessorios: 'Accessories',
+    cat_gaming: 'Gaming',
+    cat_personalizados: 'Custom Orders',
+    cat_decoracao: 'Decor',
+    cat_lazer: 'Leisure',
+    cat_infantil: 'Kids',
+    cat_organizacao: 'Organization',
+    cat_casa: 'Home',
+    cat_futebol: 'Football',
+    cat_empresas: 'Corporate',
+    cat_outros: 'Others',
 
     // Featured Products Section
     featured_title: 'Featured Products',
@@ -216,7 +216,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     footer_newsletter_desc: 'Subscribe to receive discounts and new 3D filament collections.',
     footer_newsletter_btn: 'Subscribe',
     footer_newsletter_placeholder: 'Your email address',
-    footer_delivery_bottom: 'Guimarães, Portugal 🇵🇹 • Shipping across Portugal via CTT, Uber or Studio Pickup',
+    footer_delivery_bottom: 'SHIPPING VIA CTT - UBER - PICKUP',
     footer_payment_exclusive: 'Exclusive payment:',
     footer_admin_link: '• Admin Portal (/admin)',
 
@@ -227,7 +227,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
 
   es: {
     // TopBar & Header
-    entrega_info: 'Guimarães • Envíos CTT, Uber o Recogida 🇵🇹',
+    entrega_info: 'Envíos a todo Portugal',
     rastrear: 'Rastrear Pedido',
     contacto: 'Contacto',
     inicio: 'Inicio',
@@ -260,24 +260,24 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     feature_local_sub: 'Producción 3D artesanal local',
     feature_custom_title: 'Piezas a Medida',
     feature_custom_sub: 'Colores, nombres y presupuestos',
-    feature_payment_title: 'Pago MB WAY',
+    feature_payment_title: 'MB WAY',
     feature_payment_sub: 'Aceptamos exclusivamente MB WAY',
 
     // Categories Section
     categories_badge: 'Taller 3D Guimarães',
     categories_title: 'Comprar por Categoría',
+    cat_natal: 'Navidad',
+    cat_chaveiros: 'Llaveros',
+    cat_gaming: 'Gaming',
     cat_personalizados: 'Personalizados',
     cat_decoracao: 'Decoración',
-    cat_suportes: 'Soportes',
-    cat_chaveiros: 'Llaveros',
-    cat_vasos: 'Jarrones & Macetas',
-    cat_organizadores: 'Organizadores',
-    cat_colecionaveis: 'Coleccionables',
-    cat_utilidades: 'Utilidades',
-    cat_luminarias: 'Lámparas',
-    cat_pets: 'Mascotas',
-    cat_festas: 'Recuerdos & Fiestas',
-    cat_acessorios: 'Accesorios & Moda',
+    cat_lazer: 'Ocio',
+    cat_infantil: 'Infantil',
+    cat_organizacao: 'Organización',
+    cat_casa: 'Hogar',
+    cat_futebol: 'Fútbol',
+    cat_empresas: 'Empresas',
+    cat_outros: 'Otros',
 
     // Featured Products Section
     featured_title: 'Productos Destacados',
@@ -324,7 +324,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     footer_newsletter_desc: 'Suscríbete para recibir descuentos y nuevas colecciones de filamento 3D.',
     footer_newsletter_btn: 'Suscribirse',
     footer_newsletter_placeholder: 'Tu correo electrónico',
-    footer_delivery_bottom: 'Guimarães, Portugal 🇵🇹 • Envíos a todo Portugal por CTT, Uber o Recogida',
+    footer_delivery_bottom: 'ENVIAMOS POR CTT - UBER - RECOGIDA',
     footer_payment_exclusive: 'Pago exclusivo:',
     footer_admin_link: '• Área Reservada (/admin)',
 
@@ -335,7 +335,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
 
   fr: {
     // TopBar & Header
-    entrega_info: 'Guimarães • Livraisons CTT, Uber ou Retrait 🇵🇹',
+    entrega_info: 'Livraisons dans tout le Portugal',
     rastrear: 'Suivre la Commande',
     contacto: 'Contact',
     inicio: 'Accueil',
@@ -368,24 +368,24 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     feature_local_sub: 'Atelier artisanal 3D local',
     feature_custom_title: 'Pièces Sur Mesure',
     feature_custom_sub: 'Couleurs, noms & devis',
-    feature_payment_title: 'Paiement MB WAY',
+    feature_payment_title: 'MB WAY',
     feature_payment_sub: 'Paiement exclusif par MB WAY',
 
     // Categories Section
     categories_badge: 'Atelier 3D Guimarães',
     categories_title: 'Acheter par Catégorie',
+    cat_natal: 'Noël',
+    cat_chaveiros: 'Porte-clés',
+    cat_gaming: 'Gaming',
     cat_personalizados: 'Sur Mesure',
     cat_decoracao: 'Décoration',
-    cat_suportes: 'Supports',
-    cat_chaveiros: 'Porte-clés',
-    cat_vasos: 'Vases & Jardinières',
-    cat_organizadores: 'Organisateurs',
-    cat_colecionaveis: 'Objets de Collection',
-    cat_utilidades: 'Utilitaires',
-    cat_luminarias: 'Luminaires',
-    cat_pets: 'Animaux de Compagnie',
-    cat_festas: 'Cadeaux & Fêtes',
-    cat_acessorios: 'Accessoires & Mode',
+    cat_lazer: 'Loisirs',
+    cat_infantil: 'Enfants',
+    cat_organizacao: 'Rangement',
+    cat_casa: 'Maison',
+    cat_futebol: 'Football',
+    cat_empresas: 'Entreprises',
+    cat_outros: 'Autres',
 
     // Featured Products Section
     featured_title: 'Produits en Vedette',
@@ -432,7 +432,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     footer_newsletter_desc: 'Abonnez-vous pour recevoir des remises et les nouveautés.',
     footer_newsletter_btn: 'S\'abonner',
     footer_newsletter_placeholder: 'Votre adresse e-mail',
-    footer_delivery_bottom: 'Guimarães, Portugal 🇵🇹 • Livraisons partout au Portugal via CTT, Uber ou Retrait',
+    footer_delivery_bottom: 'EXPÉDITION PAR CTT - UBER - RETRAIT',
     footer_payment_exclusive: 'Paiement exclusif :',
     footer_admin_link: '• Espace Réservé (/admin)',
 
@@ -455,7 +455,12 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const t = (key: string): string => {
-    return TRANSLATIONS[language]?.[key] || TRANSLATIONS.pt[key] || key;
+    const val = TRANSLATIONS[language]?.[key] || TRANSLATIONS.pt[key];
+    if (val) return val;
+    if (key.startsWith('cat_')) {
+      return key.replace('cat_', '');
+    }
+    return key;
   };
 
   return (

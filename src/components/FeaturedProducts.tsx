@@ -33,19 +33,19 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
     <section id="produtos-section" className="py-10 sm:py-16 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
       {/* Title with sunflower warm golden underline */}
       <div className="text-center mb-8 sm:mb-12">
-        <h2 className="font-serif-title text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+        <h2 className="font-serif-title text-2xl sm:text-3xl md:text-4xl font-bold text-[#2b170c] tracking-tight">
           {t('featured_title')}
         </h2>
-        <div className="w-14 h-1 bg-amber-500 mt-2.5 rounded-full mx-auto" />
+        <div className="w-14 h-1 bg-[#d97706] mt-2.5 rounded-full mx-auto" />
 
         {selectedCategoryId && (
           <div className="mt-3 flex items-center justify-center gap-2">
-            <span className="text-xs sm:text-sm text-slate-600">
+            <span className="text-xs sm:text-sm text-[#5a3825]">
               {t('filter_by')}
             </span>
             <button
               onClick={onClearFilter}
-              className="text-[11px] sm:text-xs bg-amber-50 text-amber-800 hover:bg-amber-100 font-bold px-2.5 py-0.5 rounded-full transition-colors cursor-pointer border border-amber-200"
+              className="text-[11px] sm:text-xs bg-[#fcf5f1] text-[#2b170c] hover:bg-[#ebdcd3] font-bold px-2.5 py-0.5 rounded-full transition-colors cursor-pointer border border-[#e3d0c4]"
             >
               {t('clear_filter')}
             </button>
@@ -63,10 +63,10 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
             <div
               key={product.id}
               onClick={() => onViewProductDetail(product)}
-              className="group bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(245,158,11,0.12)] hover:border-amber-400 transition-all duration-300 flex flex-col justify-between p-2 sm:p-3.5 md:p-4 cursor-pointer"
+              className="group bg-white rounded-xl sm:rounded-2xl border border-[#ebdcd3] shadow-[0_4px_16px_rgba(43,23,12,0.03)] hover:shadow-[0_8px_30px_rgba(217,119,6,0.12)] hover:border-[#d97706] transition-all duration-300 flex flex-col justify-between p-2 sm:p-3.5 md:p-4 cursor-pointer"
             >
-              {/* Product Top: Clean Image & Favorite button */}
-              <div className="relative w-full aspect-square sm:aspect-[4/3] rounded-lg sm:rounded-xl overflow-hidden bg-slate-50 mb-2 sm:mb-3">
+              {/* Product Top: Clean Image matching rosy beige studio tone & Favorite button */}
+              <div className="relative w-full aspect-square sm:aspect-[4/3] rounded-lg sm:rounded-xl overflow-hidden bg-[#fbf5f2] mb-2 sm:mb-3">
                 <img
                   src={
                     (product.id === 'vaso-decorativo' && activeColor.sampleImage)
@@ -90,8 +90,8 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                   <Heart
                     className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-colors ${
                       favorited
-                        ? 'fill-amber-500 text-amber-500'
-                        : 'text-slate-400 hover:text-amber-500 stroke-[2]'
+                        ? 'fill-[#d97706] text-[#d97706]'
+                        : 'text-[#8a6857] hover:text-[#d97706] stroke-[2]'
                     }`}
                   />
                 </button>
@@ -100,24 +100,24 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
               {/* Product Info */}
               <div className="space-y-1 sm:space-y-1.5 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="text-xs sm:text-base font-bold text-slate-900 group-hover:text-amber-600 transition-colors line-clamp-1">
+                  <h3 className="text-xs sm:text-base font-bold text-[#2b170c] group-hover:text-[#d97706] transition-colors line-clamp-1">
                     {product.name}
                   </h3>
 
                   {/* Rating Stars + Count */}
                   <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
-                    <div className="flex items-center text-amber-400">
+                    <div className="flex items-center text-[#f59e0b]">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400" />
+                        <Star key={i} className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-[#f59e0b] text-[#f59e0b]" />
                       ))}
                     </div>
-                    <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
+                    <span className="text-[10px] sm:text-xs text-[#7d5e4f] font-medium">
                       ({product.reviewsCount})
                     </span>
                   </div>
 
                   {/* Price */}
-                  <div className="text-xs sm:text-base md:text-lg font-bold text-slate-900 mt-0.5 sm:mt-1">
+                  <div className="text-xs sm:text-base md:text-lg font-bold text-[#2b170c] mt-0.5 sm:mt-1">
                     € {product.price.toFixed(2).replace('.', ',')}
                   </div>
                 </div>
@@ -125,11 +125,8 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                 {/* Smaller, Aesthetic Color Swatches */}
                 <div className="pt-1 sm:pt-1.5">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] sm:text-[11px] font-semibold text-slate-700 truncate max-w-[85px] sm:max-w-none">
-                      {t('color_label')} <span className="text-amber-600 font-bold">{activeColor.name}</span>
-                    </span>
-                    <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium hidden sm:inline">
-                      {product.colors.length} {t('colors_count')}
+                    <span className="text-[10px] sm:text-[11px] font-semibold text-[#5a3825] truncate">
+                      {t('color_label')} <span className="text-[#d97706] font-bold">{activeColor.name}</span>
                     </span>
                   </div>
 
@@ -144,8 +141,8 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                           title={`${t('color_label')} ${color.name}`}
                           className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full border transition-all cursor-pointer flex items-center justify-center relative flex-shrink-0 ${
                             isSelected
-                              ? 'ring-1.5 ring-amber-500 ring-offset-1 scale-110 border-white shadow-2xs z-10'
-                              : 'border-black/15 hover:scale-110 hover:border-amber-400'
+                              ? 'ring-1.5 ring-[#d97706] ring-offset-1 scale-110 border-white shadow-2xs z-10'
+                              : 'border-black/15 hover:scale-110 hover:border-[#d97706]'
                           }`}
                           style={{
                             background: color.gradient || color.hex,
@@ -168,11 +165,10 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                       e.stopPropagation();
                       onViewProductDetail(product);
                     }}
-                    className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] sm:text-xs tracking-wider uppercase py-2 px-2 sm:py-2.5 sm:px-3 rounded-lg shadow-2xs hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer active:scale-98"
+                    className="w-full bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#b45309] hover:to-[#92400e] text-white font-bold text-[10px] sm:text-xs tracking-wider uppercase py-2 px-2 sm:py-2.5 sm:px-3 rounded-lg shadow-2xs hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer active:scale-98"
                   >
                     <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.2]" />
-                    <span className="hidden sm:inline">{t('btn_customize')}</span>
-                    <span className="sm:hidden">{t('btn_view_options')}</span>
+                    <span>{t('adicionar')}</span>
                   </button>
                 </div>
               </div>

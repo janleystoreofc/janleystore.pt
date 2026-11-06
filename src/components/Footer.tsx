@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Instagram, Send, CheckCircle2, Share2, Gift, Heart, Sparkles } from 'lucide-react';
+import { Instagram, Send, CheckCircle2, Share2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface FooterProps {
@@ -26,7 +26,32 @@ export const Footer: React.FC<FooterProps> = ({
   const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
-  const [copiedShare, setCopiedShare] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState(false);
+
+  const handleShareWithFriend = async () => {
+    const shareData = {
+      title: 'Janley Store - Impressão 3D',
+      text: '🌻 Olá! Dá uma vista de olhos na Janley Store — peças incríveis e personalizadas feitas em impressão 3D em Guimarães, Portugal:',
+      url: window.location.origin,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        setShareFeedback(true);
+        setTimeout(() => setShareFeedback(false), 3000);
+        return;
+      } catch (err) {
+        // User cancelled or fallback
+      }
+    }
+
+    const text = `${shareData.text} ${shareData.url}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+    setShareFeedback(true);
+    setTimeout(() => setShareFeedback(false), 3000);
+  };
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,51 +64,9 @@ export const Footer: React.FC<FooterProps> = ({
     }
   };
 
-  const handleShareWithFriend = () => {
-    const shareText = `🌻 Olá! Dá uma vista de olhos na Janley Store — peças incríveis e personalizadas feitas em impressão 3D em Guimarães, Portugal: https://janleystore.pt`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-    window.open(whatsappUrl, '_blank');
-    setCopiedShare(true);
-    setTimeout(() => setCopiedShare(false), 4000);
-  };
-
   return (
-    <footer className="bg-white border-t border-slate-200/80 pt-12 pb-8 transition-colors">
+    <footer className="bg-white border-t border-[#ebdcd3] pt-12 pb-8 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Referral & Incentive Banner: "Indicar a um amigo" */}
-        <div className="mb-12 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-5 sm:p-7 border border-slate-700/80 flex flex-col md:flex-row items-center justify-between gap-5 shadow-md">
-          <div className="flex items-center gap-4 text-center md:text-left">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
-              <Gift className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 justify-center md:justify-start">
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-                  {t('footer_referral_badge')}
-                </span>
-                <span className="text-[10px] font-bold bg-slate-800 text-amber-300 px-2.5 py-0.5 rounded-full border border-slate-700">
-                  {t('footer_referral_sub')}
-                </span>
-              </div>
-              <h3 className="font-serif-title text-base sm:text-lg font-bold text-white mt-0.5">
-                {t('footer_referral_title')}
-              </h3>
-              <p className="text-xs text-slate-300 mt-0.5">
-                {t('footer_referral_desc')}
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleShareWithFriend}
-            className="flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider py-3 px-5 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-98 group"
-          >
-            <Share2 className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-            <span>{t('footer_referral_btn')}</span>
-          </button>
-        </div>
-
         {/* Main Footer Columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-8 pb-10 border-b border-slate-100">
           {/* Col 1: Brand Info & Socials */}
@@ -96,20 +79,16 @@ export const Footer: React.FC<FooterProps> = ({
               />
             </div>
 
-            <p className="text-xs sm:text-sm text-[#5c3a1e] leading-relaxed max-w-sm">
-              {t('footer_desc')}
-            </p>
-
             <div className="flex items-center gap-2.5 pt-1">
               <a
                 href="https://www.instagram.com/janleystoreofc"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-8 px-3 rounded-full bg-[#fef8ed] hover:bg-[#fde68a]/60 text-[#b45309] border border-[#fed7aa] flex items-center gap-1.5 text-xs font-bold transition-transform hover:scale-105 shadow-2xs"
-                title="@janleystoreofc"
+                className="w-8 h-8 rounded-full bg-[#fef8ed] hover:bg-[#fde68a]/60 text-[#b45309] border border-[#fed7aa] flex items-center justify-center transition-transform hover:scale-110 shadow-2xs"
+                title="Instagram @janleystoreofc"
+                aria-label="Instagram @janleystoreofc"
               >
                 <Instagram className="w-3.5 h-3.5" />
-                <span>@janleystoreofc</span>
               </a>
 
               <a
@@ -136,6 +115,24 @@ export const Footer: React.FC<FooterProps> = ({
                 </svg>
               </a>
             </div>
+
+            {/* Botão Indicar a um Amigo */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handleShareWithFriend}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#b45309] hover:to-[#92400e] text-white text-xs font-bold transition-all duration-200 hover:scale-102 active:scale-98 shadow-2xs hover:shadow-sm cursor-pointer group"
+                title="Indicar a Janley Store a um amigo"
+              >
+                <Share2 className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
+                <span>Indicar a um Amigo</span>
+              </button>
+              {shareFeedback && (
+                <span className="block text-[11px] text-[#008f51] font-semibold mt-1 animate-fadeIn">
+                  ✓ Link pronto para partilhar!
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Col 2: Links Rápidos */}
@@ -144,6 +141,15 @@ export const Footer: React.FC<FooterProps> = ({
               {t('footer_quick_links')}
             </h3>
             <ul className="space-y-1.5 text-xs text-[#5c3a1e]">
+              <li>
+                <button
+                  onClick={handleShareWithFriend}
+                  className="hover:text-[#d97706] transition-colors cursor-pointer flex items-center gap-1.5 font-semibold text-[#d97706]"
+                >
+                  <Share2 className="w-3 h-3" />
+                  <span>Indicar a um Amigo</span>
+                </button>
+              </li>
               <li>
                 <button
                   onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -282,9 +288,9 @@ export const Footer: React.FC<FooterProps> = ({
         </div>
 
         {/* Compact Footer Bottom Bar */}
-        <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-[#78350f]">
+        <div className="pt-6 flex items-center justify-center sm:justify-start text-xs text-[#78350f]">
           {/* Compact location and delivery one-liner */}
-          <div className="text-center md:text-left font-medium flex items-center gap-2">
+          <div className="text-center sm:text-left font-medium flex items-center gap-2">
             <span>{t('footer_delivery_bottom')}</span>
             {onOpenAdmin && (
               <button
@@ -295,15 +301,6 @@ export const Footer: React.FC<FooterProps> = ({
                 {t('footer_admin_link')}
               </button>
             )}
-          </div>
-
-          {/* Payment MB WAY badge */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-[#5c3a1e]">{t('footer_payment_exclusive')}</span>
-            <div className="h-6 px-2.5 bg-white border border-[#fed7aa] rounded-lg flex items-center gap-1 shadow-2xs">
-              <span className="bg-black text-white px-1 py-0.5 rounded text-[8px] font-black">MB</span>
-              <span className="text-[#008f51] font-black text-xs">WAY</span>
-            </div>
           </div>
         </div>
       </div>

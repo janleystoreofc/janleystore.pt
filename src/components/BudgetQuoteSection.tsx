@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   Upload,
   MessageCircle,
-  Sparkles,
   Check,
   CheckCircle2,
   X,
@@ -74,29 +73,26 @@ _Enviado através do site oficial Janley Store (Guimarães, Portugal)_`;
     <section id="orcamento-section" className="py-8 sm:py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fadeIn">
       {/* Header section with compact sunflower aesthetic */}
       <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-10 space-y-2">
-        <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 uppercase tracking-widest bg-amber-50 px-3.5 py-1 rounded-full border border-amber-200/80">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>{t('quote_badge')}</span>
-        </div>
-        <h2 className="font-serif-title text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight">
+        <h2 className="font-serif-title text-2xl sm:text-3xl lg:text-4xl font-bold text-[#2b170c] tracking-tight">
           {t('quote_title')}
         </h2>
-        <div className="w-14 h-1 bg-amber-500 mx-auto rounded-full mt-1.5" />
+        <div className="w-14 h-1 bg-[#d97706] mx-auto rounded-full mt-1.5" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Compact Form: 7 Columns */}
-        <div className="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/80 shadow-[0_4px_24px_rgba(0,0,0,0.04)] space-y-4">
+        <div className="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-7 border border-[#ebdcd3] shadow-[0_4px_24px_rgba(43,23,12,0.04)] space-y-4">
           <form onSubmit={handleSendWhatsApp} className="space-y-4">
             {/* 1. Category Selection */}
             <div>
-              <label className="block text-xs font-bold text-slate-900 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-[#2b170c] uppercase tracking-wider mb-1.5">
                 {t('quote_step1')}
               </label>
-              <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-1.5 rounded-2xl bg-slate-50 border border-slate-200 custom-scroll">
+              <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-1.5 rounded-2xl bg-[#fbf5f2] border border-[#ebdcd3] custom-scroll">
                 {CATEGORIES.map((cat) => {
                   const isSel = selectedCategory === cat.name;
-                  const catName = t(`cat_${cat.id}`) || cat.name;
+                  const raw = t(`cat_${cat.id}`);
+                  const catName = (!raw || raw.startsWith('cat_')) ? cat.name : raw;
                   return (
                     <button
                       key={cat.id}
@@ -105,7 +101,7 @@ _Enviado através do site oficial Janley Store (Guimarães, Portugal)_`;
                       className={`text-xs px-2.5 py-1 rounded-xl font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                         isSel
                           ? 'bg-[#d97706] text-white shadow-xs font-bold'
-                          : 'bg-white text-[#4a2e18] border border-[#fed7aa]/80 hover:border-[#d97706]'
+                          : 'bg-white text-[#2b170c] border border-[#ebdcd3] hover:border-[#d97706]'
                       }`}
                     >
                       <img src={cat.image} alt={catName} className="w-3.5 h-3.5 rounded-full object-cover" />
@@ -219,20 +215,6 @@ _Enviado através do site oficial Janley Store (Guimarães, Portugal)_`;
               </div>
             </div>
 
-            {/* 4. Description */}
-            <div>
-              <label className="block text-xs font-bold text-[#3d2314] uppercase tracking-wider mb-1">
-                {t('quote_step5')}
-              </label>
-              <textarea
-                rows={2}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={t('quote_step5_placeholder')}
-                className="w-full bg-[#fef8ed]/60 border border-[#fed7aa] focus:border-[#d97706] focus:bg-white rounded-xl p-2.5 text-xs outline-hidden"
-              />
-            </div>
-
             {/* 5. Client Contacts */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
@@ -271,12 +253,12 @@ _Enviado através do site oficial Janley Store (Guimarães, Portugal)_`;
 
         {/* Right Preview Card: 5 Columns */}
         <div className="lg:col-span-5 space-y-3">
-          <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <span className="font-bold text-xs text-slate-900 uppercase tracking-wider">
+          <div className="bg-white rounded-3xl p-5 border border-[#ebdcd3] shadow-[0_4px_20px_rgba(43,23,12,0.04)] space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[#ebdcd3]">
+              <span className="font-bold text-xs text-[#2b170c] uppercase tracking-wider">
                 Resumo do Pedido 3D
               </span>
-              <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+              <span className="text-[10px] font-bold text-[#2b170c] bg-[#fcf5f1] px-2.5 py-0.5 rounded-full border border-[#ebdcd3]">
                 Guimarães, PT 🇵🇹
               </span>
             </div>

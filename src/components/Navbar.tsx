@@ -36,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [personalizadosDropdownOpen, setPersonalizadosDropdownOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.03)] transition-all">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#ebdcd3] shadow-[0_2px_10px_rgba(43,23,12,0.03)] transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-18 md:h-20">
           {/* Left: Brand Logo (Sunflower) */}
@@ -58,7 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Center: Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 text-[14px] lg:text-[15px] font-medium text-slate-800">
+          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 text-[14px] lg:text-[15px] font-medium text-[#2b170c]">
             <button
               onClick={() => {
                 setActiveTab('inicio');
@@ -66,8 +66,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
               className={`transition-colors cursor-pointer ${
                 activeTab === 'inicio'
-                  ? 'text-amber-600 font-bold border-b-2 border-amber-600 pb-1'
-                  : 'hover:text-amber-600'
+                  ? 'text-[#d97706] font-bold border-b-2 border-[#d97706] pb-1'
+                  : 'hover:text-[#d97706]'
               }`}
             >
               {t('inicio')}
