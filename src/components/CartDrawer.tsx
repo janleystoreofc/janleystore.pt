@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight, Tag, Truck, CheckCircle2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { getProductImageForColor } from '../data/products';
 
 interface CartDrawerProps {
   onProceedToCheckout: () => void;
@@ -149,11 +150,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) =
                   {/* Item Image */}
                   <div className="w-20 h-20 rounded-lg overflow-hidden bg-[#faf4f2] flex-shrink-0 border border-[#fae4e1]">
                     <img
-                      src={
-                        (item.selectedColor.sampleImage && (item.product.id === 'vaso-decorativo' || item.selectedColor.sampleImage))
-                          ? item.selectedColor.sampleImage
-                          : item.product.image
-                      }
+                      src={getProductImageForColor(item.product, item.selectedColor)}
                       alt={item.product.name}
                       className="w-full h-full object-cover"
                     />

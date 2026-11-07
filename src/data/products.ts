@@ -80,68 +80,84 @@ export const JANLEY_COLORS: ProductColor[] = [
     hex: '#f5b82a',
     gradient: 'linear-gradient(135deg, #ffe066 0%, #f5b82a 50%, #cb8402 100%)',
     isGradient: true,
-    sampleImage: '/images/vaso_dourado_amarelo.png',
   },
   {
     name: 'Rosa Gradiente Preto',
     hex: '#e11d68',
     gradient: 'linear-gradient(135deg, #f0257c 0%, #ba165c 45%, #180912 100%)',
     isGradient: true,
-    sampleImage: '/images/vaso_pink_gradiente_preto.png',
   },
   {
     name: 'Roxo Gradiente Preto',
     hex: '#8b1da8',
     gradient: 'linear-gradient(135deg, #a81db5 0%, #751582 45%, #18091c 100%)',
     isGradient: true,
-    sampleImage: '/images/vaso_roxo_gradiente_preto.png',
   },
   {
     name: 'Mármore',
     hex: '#e8e7e3',
     gradient: 'radial-gradient(circle, #ffffff 20%, #e6e5e0 60%, #cecdc8 100%)',
     isMarble: true,
-    sampleImage: '/images/vaso_marmore.png',
-  },
-  {
-    name: 'Laranja',
-    hex: '#ff6a00',
-  },
-  {
-    name: 'Amarelo',
-    hex: '#f7c700',
-  },
-  {
-    name: 'Vermelho',
-    hex: '#d91424',
-  },
-  {
-    name: 'Preto',
-    hex: '#1a1a1a',
   },
   {
     name: 'Branco',
     hex: '#ffffff',
   },
   {
+    name: 'Preto',
+    hex: '#1a1a1a',
+  },
+  {
     name: 'Cinza',
     hex: '#83878b',
   },
   {
-    name: 'Azul',
-    hex: '#0c5fe6',
+    name: 'Amarelo',
+    hex: '#f7c700',
+  },
+  {
+    name: 'Laranja Intenso',
+    hex: '#ff5500',
+  },
+  {
+    name: 'Vermelho',
+    hex: '#d91424',
+  },
+  {
+    name: 'Rosa Claro',
+    hex: '#fbcfe8',
+  },
+  {
+    name: 'Rosa Coral',
+    hex: '#f87171',
+  },
+  {
+    name: 'Roxo',
+    hex: '#7c3aed',
+  },
+  {
+    name: 'Azul Royal',
+    hex: '#1d4ed8',
+  },
+  {
+    name: 'Azul-Celeste',
+    hex: '#38bdf8',
   },
   {
     name: 'Verde',
     hex: '#009b48',
   },
   {
-    name: 'Castanho (mais claro)',
-    hex: '#b87842',
+    name: 'Verde Oliva',
+    hex: '#6b8e23',
   },
   {
-    name: 'Rosa Pastel',
-    hex: '#e8a9b2',
+    name: 'Castanho',
+    hex: '#8b5a2b',
+  },
+  {
+    name: 'Marrom',
+    hex: '#4a2c16',
   },
   {
     name: 'Verde Salva',
@@ -152,6 +168,46 @@ export const JANLEY_COLORS: ProductColor[] = [
     hex: '#90a4cb',
   },
 ];
+
+// Specific colors with real variant photos for the Vaso Decorativo
+export const VASO_COLORS: ProductColor[] = JANLEY_COLORS.map((c) => {
+  if (c.name === 'Dourado') return { ...c, sampleImage: '/images/vaso_dourado_amarelo.png' };
+  if (c.name === 'Rosa Gradiente Preto') return { ...c, sampleImage: '/images/vaso_pink_gradiente_preto.png' };
+  if (c.name === 'Roxo Gradiente Preto') return { ...c, sampleImage: '/images/vaso_roxo_gradiente_preto.png' };
+  if (c.name === 'Mármore') return { ...c, sampleImage: '/images/vaso_marmore.png' };
+  return c;
+});
+
+/**
+ * Safely resolves the product photo for a selected color.
+ * - Each product maintains its own photo.
+ * - Only changes if a verified photo of THIS specific product in this color exists.
+ * - Never shows photos of other products (e.g. vase photos on phone stands or keychains).
+ * - Defaults to product.image when no specific photo exists for that color.
+ */
+export function getProductImageForColor(product: Product, color?: ProductColor): string {
+  if (!product) return '/images/prod_suporte_telemovel.png';
+
+  const defaultImage = product.image || (Array.isArray(product.images) && product.images[0]) || '/images/prod_suporte_telemovel.png';
+
+  if (!color || !color.sampleImage) {
+    return defaultImage;
+  }
+
+  const sampleUrl = color.sampleImage.toLowerCase();
+  const prodId = (product.id || '').toLowerCase();
+  const prodName = (product.name || '').toLowerCase();
+
+  // Guard against foreign vase images on non-vase products
+  const isVaseImage = sampleUrl.includes('vaso_') || sampleUrl.includes('prod_vaso');
+  const isVaseProduct = prodId.includes('vaso') || prodName.includes('vaso');
+
+  if (isVaseImage && !isVaseProduct) {
+    return defaultImage;
+  }
+
+  return color.sampleImage;
+}
 
 export const PRODUCTS: Product[] = [
   {
@@ -211,7 +267,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 85,
     image: '/images/prod_vaso_decorativo.png',
-    colors: JANLEY_COLORS,
+    colors: VASO_COLORS,
     description: 'Vaso geométrico com linhas espirais esculpidas em impressão 3D precisa. Ideal para plantas secas, flores artificiais ou arranjos interiores sofisticados.',
     dimensions: '12.0 x 12.0 x 16.5 cm',
     material: 'PLA Ecológico Texturado com padrão espiral contínuo',

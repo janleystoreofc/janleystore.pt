@@ -192,8 +192,8 @@ _Enviado através do site oficial Janley Store (Guimarães, Portugal)_`;
                 <label className="block text-xs font-bold text-[#3d2314] uppercase tracking-wider mb-1">
                   {t('quote_step4')} <span className="text-[#d97706]">{selectedColor.name}</span>
                 </label>
-                <div className="flex flex-wrap items-center gap-1 p-1 bg-[#fef8ed] rounded-xl border border-[#fed7aa] max-h-12 overflow-y-auto custom-scroll">
-                  {JANLEY_COLORS.slice(0, 10).map((c) => (
+                <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-[#fef8ed] rounded-xl border border-[#fed7aa] max-h-20 overflow-y-auto custom-scroll">
+                  {JANLEY_COLORS.map((c) => (
                     <button
                       key={c.name}
                       type="button"

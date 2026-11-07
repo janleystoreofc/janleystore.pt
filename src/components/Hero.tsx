@@ -16,15 +16,19 @@ export const Hero: React.FC<HeroProps> = ({ onExploreProducts }) => {
           {/* Left Text Content */}
           <div className="lg:col-span-6 z-10 space-y-6 text-center lg:text-left">
             <div className="space-y-1">
-              <h1 className="font-serif-title text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-bold tracking-tight text-[#2b170c] leading-[1.1]">
-                {t('hero_slide1_title1')} <br />
-                <span className="text-[#d97706] font-serif-title">{t('hero_slide1_title2')}</span>
+              <h1 className="font-serif-title text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-bold tracking-tight text-[#2b170c] leading-[1.15]">
+                {t('hero_slide1_title_line1')} <br />
+                {t('hero_slide1_title_line2')} <br />
+                <span className="text-[#d97706] font-serif-title">
+                  {t('hero_slide1_title_line3')} <br />
+                  {t('hero_slide1_title_line4')}
+                </span> <br />
+                <span className="text-2xl sm:text-3xl md:text-4xl xl:text-5xl text-[#2b170c] font-medium block pt-1">
+                  {t('hero_slide1_title_line5')}
+                </span>
               </h1>
             </div>
 
-            <p className="text-[#5a3825] text-base sm:text-lg md:text-xl font-normal leading-relaxed max-w-xl mx-auto lg:mx-0">
-              {t('hero_slide1_subtitle')}
-            </p>
 
             {/* Single Main CTA Button */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">

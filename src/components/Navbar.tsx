@@ -38,7 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#ebdcd3] shadow-[0_2px_10px_rgba(43,23,12,0.03)] transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-18 md:h-20">
+        <div className="flex items-center justify-between h-20 sm:h-22 md:h-24">
           {/* Left: Brand Logo (Sunflower) */}
           <div className="flex-shrink-0 flex items-center">
             <button
@@ -52,7 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <img
                 src="/assets/aistudio/LOGO_JANLEY_ofc.pdf_52899af3.png"
                 alt="JANLEY STORE - Impressão 3D"
-                className="h-11 sm:h-13 md:h-15 w-auto max-h-[64px] object-contain transition-transform duration-300 group-hover:scale-102"
+                className="h-16 sm:h-18 md:h-20 w-auto max-h-[76px] sm:max-h-[84px] object-contain transition-transform duration-300 group-hover:scale-102 drop-shadow-xs"
               />
             </button>
           </div>

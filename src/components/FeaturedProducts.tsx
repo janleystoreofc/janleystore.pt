@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Product, ProductColor } from '../types';
+import { getProductImageForColor } from '../data/products';
 import { Star, Heart, Check, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -68,11 +69,7 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
               {/* Product Top: Clean Image matching rosy beige studio tone & Favorite button */}
               <div className="relative w-full aspect-square sm:aspect-[4/3] rounded-lg sm:rounded-xl overflow-hidden bg-[#fbf5f2] mb-2 sm:mb-3">
                 <img
-                  src={
-                    (product.id === 'vaso-decorativo' && activeColor.sampleImage)
-                      ? activeColor.sampleImage
-                      : product.image
-                  }
+                  src={getProductImageForColor(product, activeColor)}
                   alt={`${product.name} em ${activeColor.name}`}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-104"
                 />

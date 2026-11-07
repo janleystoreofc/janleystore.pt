@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { Product, ProductColor } from '../types';
-import { PRODUCTS as FALLBACK_PRODUCTS, JANLEY_COLORS } from '../data/products';
+import { PRODUCTS as FALLBACK_PRODUCTS, JANLEY_COLORS, VASO_COLORS } from '../data/products';
 
 // Accept both VITE_SUPABASE_PUBLISHABLE_KEY (Vercel standard) and VITE_SUPABASE_ANON_KEY
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -152,6 +152,30 @@ export function mapDbProductToProduct(item: DbProduct): Product {
     ? item.images
     : item.image ? [item.image] : ['/images/prod_suporte_telemovel.png'];
 
+  const isVase = (item.id || '').toLowerCase().includes('vaso') || (item.name || '').toLowerCase().includes('vaso');
+
+  // Sanitize colors: ensure foreign vase images don't leak to non-vase products
+  const rawColors = Array.isArray(item.colors) && item.colors.length > 0
+    ? item.colors
+    : (isVase ? VASO_COLORS : JANLEY_COLORS);
+
+  const cleanColors = rawColors.map((color) => {
+    if (!color.sampleImage) return color;
+    const sample = color.sampleImage.toLowerCase();
+    const isVaseSample = sample.includes('vaso_') || sample.includes('prod_vaso');
+    if (isVaseSample && !isVase) {
+      const { sampleImage, ...sanitized } = color;
+      return sanitized;
+    }
+    return color;
+  });
+
+  // Ensure all store colors are present: if any color is missing, append it
+  const basePalette = isVase ? VASO_COLORS : JANLEY_COLORS;
+  const existingNames = new Set(cleanColors.map((c) => c.name.trim().toLowerCase()));
+  const missingColors = basePalette.filter((c) => !existingNames.has(c.name.trim().toLowerCase()));
+  const allProductColors = [...cleanColors, ...missingColors];
+
   return {
     id: item.id,
     name: item.name,
@@ -161,7 +185,7 @@ export function mapDbProductToProduct(item: DbProduct): Product {
     rating: Number(item.rating || 5.0),
     reviewsCount: Number(item.reviews_count || 12),
     image: images[0],
-    colors: item.colors && item.colors.length > 0 ? item.colors : JANLEY_COLORS,
+    colors: allProductColors,
     description: item.description || '',
     dimensions: item.dimensions || 'Sob medida',
     material: item.material || 'PLA Ecológico de Alta Precisão',

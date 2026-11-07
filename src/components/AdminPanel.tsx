@@ -37,7 +37,7 @@ import {
   SUPABASE_SCHEMA_SQL,
   DbProduct
 } from '../lib/supabase';
-import { CATEGORIES, JANLEY_COLORS } from '../data/products';
+import { CATEGORIES, JANLEY_COLORS, VASO_COLORS } from '../data/products';
 
 interface AdminPanelProps {
   onBackToShop: () => void;
@@ -282,6 +282,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
     try {
       const primaryImage = formData.images[0] || '/images/prod_suporte_telemovel.png';
 
+      const isVase =
+        Boolean(
+          (editingProduct && (editingProduct.id.toLowerCase().includes('vaso') || editingProduct.name.toLowerCase().includes('vaso'))) ||
+          (!editingProduct && formData.name.toLowerCase().includes('vaso'))
+        );
+
+      const productColors = isVase
+        ? (editingProduct?.colors && editingProduct.colors.some(c => c.sampleImage) ? editingProduct.colors : VASO_COLORS)
+        : (editingProduct?.colors
+            ? editingProduct.colors.map(c => {
+                if (c.sampleImage && (c.sampleImage.toLowerCase().includes('vaso') || (editingProduct && !c.sampleImage.includes(editingProduct.id)))) {
+                  const { sampleImage, ...cleanColor } = c;
+                  return cleanColor;
+                }
+                return c;
+              })
+            : JANLEY_COLORS);
+
       const payload = {
         name: formData.name.trim(),
         price: numPrice,
@@ -295,7 +313,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
         is_hidden: formData.is_hidden,
         images: formData.images,
         image: primaryImage,
-        colors: JANLEY_COLORS,
+        colors: productColors,
         rating: editingProduct?.rating || 5.0,
         reviews_count: editingProduct?.reviews_count || 0,
       };

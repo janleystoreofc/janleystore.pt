@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Star, ShoppingBag, Heart, Check, ShieldCheck, Sparkles, Box, Info } from 'lucide-react';
 import { Product, ProductColor } from '../types';
 import { useCart } from '../context/CartContext';
+import { getProductImageForColor } from '../data/products';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -79,12 +80,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
             {/* Left: Product Image */}
             <div className="md:col-span-6 relative aspect-square rounded-2xl overflow-hidden bg-[#fffdfa] border border-[#fed7aa]">
               <img
-                src={
-                  selectedColor.sampleImage && (product.id === 'vaso-decorativo' || selectedColor.sampleImage)
-                    ? selectedColor.sampleImage
-                    : product.image
-                }
-                alt={`${product.name} em ${selectedColor.name}`}
+                src={product ? getProductImageForColor(product, selectedColor) : '/images/prod_suporte_telemovel.png'}
+                alt={`${product?.name || ''} em ${selectedColor.name}`}
                 className="w-full h-full object-cover transition-all duration-300"
               />
 
