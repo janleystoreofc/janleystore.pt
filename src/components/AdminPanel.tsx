@@ -424,11 +424,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
               <div className="font-bold text-[#33221e]">Passos para ativação:</div>
               <ol className="list-decimal list-inside space-y-1.5 text-[#735953]">
                 <li>Cria uma conta ou projeto gratuito em <strong>supabase.com</strong>.</li>
-                <li>No teu projeto, vai a <strong>Project Settings &gt; API</strong> e copia a <strong>URL</strong> e a <strong>anon public key</strong>.</li>
-                <li>Adiciona as variáveis no teu ambiente:
+                <li>No teu projeto, vai a <strong>Project Settings &gt; API</strong> e copia a <strong>URL</strong> e a <strong>anon public / publishable key</strong>.</li>
+                <li>Adiciona as variáveis no teu ambiente (Vercel ou .env):
                   <code className="block bg-[#faf4f2] text-[#d97706] p-2 rounded-lg mt-1 font-mono text-[11px]">
                     VITE_SUPABASE_URL=https://teu-projeto.supabase.co<br />
-                    VITE_SUPABASE_ANON_KEY=tua-chave-anonima-aqui
+                    VITE_SUPABASE_PUBLISHABLE_KEY=tua-chave-aqui (ou VITE_SUPABASE_ANON_KEY)
                   </code>
                 </li>
                 <li>Vai ao <strong>SQL Editor</strong> do Supabase e executa o script SQL para criar a tabela de produtos e o bucket de fotografias.</li>

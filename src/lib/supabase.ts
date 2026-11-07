@@ -2,18 +2,24 @@ import { createClient } from '@supabase/supabase-js';
 import { Product, ProductColor } from '../types';
 import { PRODUCTS as FALLBACK_PRODUCTS, JANLEY_COLORS } from '../data/products';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Accept both VITE_SUPABASE_PUBLISHABLE_KEY (Vercel standard) and VITE_SUPABASE_ANON_KEY
+const rawUrl = import.meta.env.VITE_SUPABASE_URL;
+const rawKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const supabaseUrl = typeof rawUrl === 'string' ? rawUrl.trim() : '';
+const supabaseKey = typeof rawKey === 'string' ? rawKey.trim() : '';
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl &&
-  supabaseAnonKey &&
-  supabaseUrl !== 'https://your-project.supabase.co' &&
-  !supabaseUrl.includes('your-project')
+  supabaseKey &&
+  supabaseUrl.startsWith('http') &&
+  !supabaseUrl.includes('your-project') &&
+  !supabaseUrl.includes('teu-projeto') &&
+  !supabaseUrl.includes('placeholder-project')
 );
 
 export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseKey)
   : createClient('https://placeholder-project.supabase.co', 'placeholder-anon-key');
 
 export interface DbProduct {
