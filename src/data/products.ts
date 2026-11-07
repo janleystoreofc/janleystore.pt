@@ -4,31 +4,31 @@ export const CATEGORIES: Category[] = [
   {
     id: 'natal',
     name: 'Natal',
-    image: '/images/cat_natal.png',
+    image: '/assets/aistudio/Natal_3D_com_Luzes_Aconchegantes_8827239d.png',
     description: 'Árvores decorativas, estrelas e enfeites de Natal em filamento biodegradável.',
   },
   {
     id: 'chaveiros',
     name: 'Chaveiros',
-    image: '/images/cat_chaveiros.png',
+    image: '/assets/aistudio/Chaveiro_de_l_bios_vermelhos_c24316a4.png',
     description: 'Chaveiros de letras, corações e monogramas personalizados com alta definição.',
   },
   {
     id: 'gaming',
     name: 'Gaming',
-    image: '/images/cat_gaming.png',
+    image: '/assets/aistudio/Suporte_Magenta_para_Controle_PlayStation_4046085c.png',
     description: 'Suportes para comandos PlayStation/Xbox e auscultadores de gaming.',
   },
   {
     id: 'personalizados',
     name: 'Personalizados',
-    image: '/images/cat_personalizados.png',
+    image: '/assets/aistudio/Chaveiros_Personalizados_Emma_e_Jade_b2f99a98.png',
     description: 'Nomes decorativos, logótipos 3D, datas especiais e presentes exclusivos.',
   },
   {
     id: 'decoracao',
     name: 'Decoração',
-    image: '/images/cat_decoracao.png',
+    image: '/assets/aistudio/Conjunto_Decorativo_de_Pampas_e_Vela_b4436603.png',
     description: 'Vasos ondulados, bandejas minimalistas e peças de arte moderna.',
   },
   {
@@ -40,7 +40,7 @@ export const CATEGORIES: Category[] = [
   {
     id: 'infantil',
     name: 'Infantil',
-    image: '/images/cat_infantil.jpg',
+    image: '/assets/aistudio/Drag_o_Arco-_ris_em_Espiral_793e526b.png',
     description: 'Luminárias de quarto, puxadores temáticos e brinquedos didáticos seguros.',
   },
   {
@@ -64,7 +64,7 @@ export const CATEGORIES: Category[] = [
   {
     id: 'empresas',
     name: 'Empresas',
-    image: '/images/cat_empresas.jpg',
+    image: '/assets/aistudio/Placa_de_Enfermagem_Leonardo_04c49766.png',
     description: 'Brindes corporativos com logótipo, suportes de balcão e placas com QR Code.',
   },
   {
@@ -282,7 +282,7 @@ export const PRODUCTS: Product[] = [
     price: 9.90,
     rating: 5.0,
     reviewsCount: 42,
-    image: '/images/cat_natal.png',
+    image: '/assets/aistudio/Natal_3D_com_Luzes_Aconchegantes_8827239d.png',
     colors: JANLEY_COLORS,
     description: 'Árvore decorativa de Natal com estética origami e estrela no topo. Uma peça mágica e acolhedora para centros de mesa natalícios.',
     dimensions: '10.0 x 10.0 x 15.0 cm',
@@ -298,7 +298,7 @@ export const PRODUCTS: Product[] = [
     price: 16.90,
     rating: 4.9,
     reviewsCount: 67,
-    image: '/images/cat_gaming.png',
+    image: '/assets/aistudio/Suporte_Magenta_para_Controle_PlayStation_4046085c.png',
     colors: JANLEY_COLORS,
     description: 'Suporte ergonómico e estável compatível com comandos PS5, PS4, Xbox e Nintendo Switch Pro. Base antiderrapante incluída.',
     dimensions: '9.0 x 10.5 x 12.0 cm',
