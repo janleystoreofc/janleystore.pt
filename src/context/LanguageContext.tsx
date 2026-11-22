@@ -12,6 +12,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
   pt: {
     // TopBar & Header
     entrega_info: 'Entregas para todo Portugal',
+    entrega_info_no_ctt: 'Entregas via Uber Flash & Recolha em Guimarães',
     rastrear: 'Rastrear Encomenda',
     contacto: 'Contacto',
     inicio: 'Início',
@@ -60,8 +61,8 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     cat_gaming: 'Gaming',
     cat_personalizados: 'Personalizados',
     cat_decoracao: 'Decoração',
-    cat_lazer: 'Lazer',
     cat_infantil: 'Infantil',
+    'cat_homem-mulher': 'Homem - Mulher',
     cat_organizacao: 'Organização',
     cat_casa: 'Casa',
     cat_futebol: 'Futebol',
@@ -92,7 +93,23 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     quote_summary_title: 'Resumo do Pedido 3D',
     quote_delivery_summary: 'Entrega:',
     quote_delivery_val: 'CTT, Uber ou Recolha',
+    quote_delivery_val_no_ctt: 'Uber Flash ou Recolha',
     quote_whatsapp_opened: 'WhatsApp aberto com sucesso! Envia a mensagem com os detalhes.',
+
+    // Customer Suggestion Section
+    suggestion_badge: 'A tua opinião conta',
+    suggestion_title: 'Sugestão Livre para a Loja',
+    suggestion_subtitle: 'Há algum produto, suporte, decoração ou ideia em impressão 3D que gostavas de ver à venda na Janley Store? Escreve a tua sugestão livre abaixo!',
+    suggestion_label: 'O que gostarias que adicionássemos à loja? *',
+    suggestion_placeholder: 'Ex: Suporte de parede para comandos, organizador de maquilhagem, porta-chaves de profissões...',
+    suggestion_name_label: 'O teu nome (opcional)',
+    suggestion_contact_label: 'WhatsApp ou E-mail (opcional)',
+    suggestion_btn_send: 'Enviar Sugestão',
+    suggestion_btn_whatsapp: 'Enviar também por WhatsApp',
+    suggestion_btn_another: 'Enviar outra sugestão',
+    suggestion_success_title: 'Obrigado pela tua sugestão!',
+    suggestion_success_desc: 'Recebemos a tua ideia! Vamos analisá-la com carinho para futuras novidades da Janley Store.',
+    suggestion_success_whatsapp_hint: 'Sugestão pronta! Podes também enviá-la diretamente pelo nosso WhatsApp para analisarmos já.',
 
     // Customization Banner
     custom_banner_line1: 'Personaliza a tua ideia.',
@@ -114,6 +131,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     footer_newsletter_btn: 'Subscrever',
     footer_newsletter_placeholder: 'O teu email',
     footer_delivery_bottom: 'ENVIAMOS POR CTT - UBER - RECOLHA',
+    footer_delivery_bottom_no_ctt: 'ENVIAMOS POR UBER - RECOLHA',
     footer_payment_exclusive: 'Pagamento exclusivo:',
     footer_admin_link: '• Área Reservada (/admin)',
 
@@ -125,6 +143,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
   en: {
     // TopBar & Header
     entrega_info: 'Deliveries across Portugal',
+    entrega_info_no_ctt: 'Deliveries via Uber Flash & Guimarães Pickup',
     rastrear: 'Track Order',
     contacto: 'Contact',
     inicio: 'Home',
@@ -173,8 +192,8 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     cat_gaming: 'Gaming',
     cat_personalizados: 'Custom Orders',
     cat_decoracao: 'Decor',
-    cat_lazer: 'Leisure',
     cat_infantil: 'Kids',
+    'cat_homem-mulher': 'Men & Women',
     cat_organizacao: 'Organization',
     cat_casa: 'Home',
     cat_futebol: 'Football',
@@ -205,7 +224,23 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     quote_summary_title: '3D Order Summary',
     quote_delivery_summary: 'Delivery:',
     quote_delivery_val: 'CTT, Uber or Studio Pickup',
+    quote_delivery_val_no_ctt: 'Uber Flash or Studio Pickup',
     quote_whatsapp_opened: 'WhatsApp opened! Please review and send your message.',
+
+    // Customer Suggestion Section
+    suggestion_badge: 'Your voice matters',
+    suggestion_title: 'Suggest a Product for Our Shop',
+    suggestion_subtitle: 'Is there a 3D-printed item, stand, decor piece or idea you would love to see added to Janley Store? Share your suggestion freely below!',
+    suggestion_label: 'What would you like us to add to the store? *',
+    suggestion_placeholder: 'E.g., Wall-mounted controller holder, makeup organizer, themed keychains...',
+    suggestion_name_label: 'Your name (optional)',
+    suggestion_contact_label: 'WhatsApp or Email (optional)',
+    suggestion_btn_send: 'Send Suggestion',
+    suggestion_btn_whatsapp: 'Also send via WhatsApp',
+    suggestion_btn_another: 'Send another suggestion',
+    suggestion_success_title: 'Thank you for your suggestion!',
+    suggestion_success_desc: 'We received your idea and will review it for upcoming Janley Store releases.',
+    suggestion_success_whatsapp_hint: 'Your suggestion is ready! Feel free to send it straight to our WhatsApp as well.',
 
     // Customization Banner
     custom_banner_line1: 'Customize your idea.',
@@ -227,6 +262,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     footer_newsletter_btn: 'Subscribe',
     footer_newsletter_placeholder: 'Your email address',
     footer_delivery_bottom: 'SHIPPING VIA CTT - UBER - PICKUP',
+    footer_delivery_bottom_no_ctt: 'DELIVERY VIA UBER - PICKUP',
     footer_payment_exclusive: 'Exclusive payment:',
     footer_admin_link: '• Admin Portal (/admin)',
 
@@ -238,6 +274,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
   es: {
     // TopBar & Header
     entrega_info: 'Envíos a todo Portugal',
+    entrega_info_no_ctt: 'Entregas vía Uber Flash y Recogida en Guimarães',
     rastrear: 'Rastrear Pedido',
     contacto: 'Contacto',
     inicio: 'Inicio',
@@ -286,8 +323,8 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     cat_gaming: 'Gaming',
     cat_personalizados: 'Personalizados',
     cat_decoracao: 'Decoración',
-    cat_lazer: 'Ocio',
     cat_infantil: 'Infantil',
+    'cat_homem-mulher': 'Hombre - Mujer',
     cat_organizacao: 'Organización',
     cat_casa: 'Hogar',
     cat_futebol: 'Fútbol',
@@ -318,7 +355,23 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     quote_summary_title: 'Resumen del Pedido 3D',
     quote_delivery_summary: 'Entrega:',
     quote_delivery_val: 'CTT, Uber o Recogida',
+    quote_delivery_val_no_ctt: 'Uber Flash o Recogida',
     quote_whatsapp_opened: '¡WhatsApp abierto con éxito! Envía el mensaje con los detalles.',
+
+    // Customer Suggestion Section
+    suggestion_badge: 'Tu opinión cuenta',
+    suggestion_title: 'Sugerencia Libre para la Tienda',
+    suggestion_subtitle: '¿Hay algún producto, soporte, decoración o idea en impresión 3D que te gustaría ver en Janley Store? ¡Déjanos tu sugerencia!',
+    suggestion_label: '¿Qué te gustaría que añadiéramos a la tienda? *',
+    suggestion_placeholder: 'Ej: Soporte de pared para mandos, organizador de maquillaje, llaveros temáticos...',
+    suggestion_name_label: 'Tu nombre (opcional)',
+    suggestion_contact_label: 'WhatsApp o Email (opcional)',
+    suggestion_btn_send: 'Enviar Sugerencia',
+    suggestion_btn_whatsapp: 'Enviar también por WhatsApp',
+    suggestion_btn_another: 'Enviar otra sugerencia',
+    suggestion_success_title: '¡Gracias por tu sugerencia!',
+    suggestion_success_desc: '¡Hemos recibido tu idea y la valoraremos para las próximas novedades de Janley Store!',
+    suggestion_success_whatsapp_hint: '¡Sugerencia lista! También puedes enviarla directamente por WhatsApp.',
 
     // Customization Banner
     custom_banner_line1: 'Personaliza tu idea.',
@@ -340,6 +393,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     footer_newsletter_btn: 'Suscribirse',
     footer_newsletter_placeholder: 'Tu correo electrónico',
     footer_delivery_bottom: 'ENVIAMOS POR CTT - UBER - RECOGIDA',
+    footer_delivery_bottom_no_ctt: 'ENTREGAMOS POR UBER - RECOGIDA',
     footer_payment_exclusive: 'Pago exclusivo:',
     footer_admin_link: '• Área Reservada (/admin)',
 
@@ -351,6 +405,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
   fr: {
     // TopBar & Header
     entrega_info: 'Livraisons dans tout le Portugal',
+    entrega_info_no_ctt: 'Livraisons via Uber Flash & Retrait à Guimarães',
     rastrear: 'Suivre la Commande',
     contacto: 'Contact',
     inicio: 'Accueil',
@@ -399,8 +454,8 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     cat_gaming: 'Gaming',
     cat_personalizados: 'Sur Mesure',
     cat_decoracao: 'Décoration',
-    cat_lazer: 'Loisirs',
     cat_infantil: 'Enfants',
+    'cat_homem-mulher': 'Homme - Femme',
     cat_organizacao: 'Rangement',
     cat_casa: 'Maison',
     cat_futebol: 'Football',
@@ -431,7 +486,23 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     quote_summary_title: 'Résumé du Devis 3D',
     quote_delivery_summary: 'Livraison :',
     quote_delivery_val: 'CTT, Uber ou Retrait',
+    quote_delivery_val_no_ctt: 'Uber Flash ou Retrait',
     quote_whatsapp_opened: 'WhatsApp ouvert avec succès ! Envoyez votre message.',
+
+    // Customer Suggestion Section
+    suggestion_badge: 'Votre avis compte',
+    suggestion_title: 'Suggestion Libre pour la Boutique',
+    suggestion_subtitle: 'Un objet, support, décoration ou idée en impression 3D que vous aimeriez voir dans notre catalogue ? Partagez votre idée ci-dessous !',
+    suggestion_label: 'Que souhaitez-vous voir ajouté à la boutique ? *',
+    suggestion_placeholder: 'Ex : Support mural pour manettes, organiseur de bureau, porte-clés personnalisés...',
+    suggestion_name_label: 'Votre nom (optionnel)',
+    suggestion_contact_label: 'WhatsApp ou E-mail (optionnel)',
+    suggestion_btn_send: 'Envoyer la Suggestion',
+    suggestion_btn_whatsapp: 'Envoyer aussi sur WhatsApp',
+    suggestion_btn_another: 'Envoyer une autre suggestion',
+    suggestion_success_title: 'Merci pour votre suggestion !',
+    suggestion_success_desc: 'Nous avons bien reçu votre idée pour les prochaines nouveautés de Janley Store.',
+    suggestion_success_whatsapp_hint: 'Votre suggestion est prête ! Vous pouvez aussi nous l’envoyer sur WhatsApp.',
 
     // Customization Banner
     custom_banner_line1: 'Personnalisez votre idée.',
@@ -453,6 +524,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     footer_newsletter_btn: 'S\'abonner',
     footer_newsletter_placeholder: 'Votre adresse e-mail',
     footer_delivery_bottom: 'EXPÉDITION PAR CTT - UBER - RETRAIT',
+    footer_delivery_bottom_no_ctt: 'LIVRAISON PAR UBER - RETRAIT',
     footer_payment_exclusive: 'Paiement exclusif :',
     footer_admin_link: '• Espace Réservé (/admin)',
 

@@ -1,7 +1,7 @@
 import React from 'react';
-import { CATEGORIES } from '../data/products';
 import { Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 
 interface CategoriesSectionProps {
   selectedCategoryId: string | null;
@@ -13,6 +13,14 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
   onSelectCategory,
 }) => {
   const { t } = useLanguage();
+  const { allCategories } = useStoreSettings();
+
+  const lgColsClass =
+    allCategories.length <= 11
+      ? 'lg:grid-cols-11'
+      : allCategories.length === 12
+        ? 'lg:grid-cols-12'
+        : 'lg:grid-cols-6';
 
   return (
     <section id="categorias-section" className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,9 +32,9 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
         <div className="w-10 h-0.5 bg-[#d97706] mx-auto mt-2 rounded-full" />
       </div>
 
-      {/* 12 Categories Grid - Ultra-compact, Aesthetic & all visible at once without horizontal drag */}
-      <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-2 sm:gap-3 max-w-6xl mx-auto">
-        {CATEGORIES.map((cat) => {
+      {/* Categories Grid */}
+      <div className={`grid grid-cols-4 sm:grid-cols-6 ${lgColsClass} gap-2 sm:gap-3 max-w-6xl mx-auto`}>
+        {allCategories.map((cat) => {
           const isSelected = selectedCategoryId === cat.id;
           const raw = t(`cat_${cat.id}`);
           const translatedName = (!raw || raw.startsWith('cat_')) ? cat.name : raw;

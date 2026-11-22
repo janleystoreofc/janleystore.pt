@@ -7,8 +7,9 @@ import {
   X,
   ImageIcon
 } from 'lucide-react';
-import { CATEGORIES, JANLEY_COLORS } from '../data/products';
+import { JANLEY_COLORS } from '../data/products';
 import { useLanguage } from '../context/LanguageContext';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 
 interface BudgetQuoteSectionProps {
   onBackToShop?: () => void;
@@ -16,6 +17,7 @@ interface BudgetQuoteSectionProps {
 
 export const BudgetQuoteSection: React.FC<BudgetQuoteSectionProps> = ({ onBackToShop }) => {
   const { t } = useLanguage();
+  const { cttEnabled, allCategories } = useStoreSettings();
   // Form state
   const [selectedCategory, setSelectedCategory] = useState('Personalizados');
   const [quantity, setQuantity] = useState(1);
@@ -89,7 +91,7 @@ _Enviado através do site oficial Janley Store (Guimarães, Portugal)_`;
                 {t('quote_step1')}
               </label>
               <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-1.5 rounded-2xl bg-[#fbf5f2] border border-[#ebdcd3] custom-scroll">
-                {CATEGORIES.map((cat) => {
+                {allCategories.map((cat) => {
                   const isSel = selectedCategory === cat.name;
                   const raw = t(`cat_${cat.id}`);
                   const catName = (!raw || raw.startsWith('cat_')) ? cat.name : raw;
@@ -278,7 +280,9 @@ _Enviado através do site oficial Janley Store (Guimarães, Portugal)_`;
               </div>
               <div className="flex justify-between">
                 <span>Entrega:</span>
-                <span className="font-semibold text-[#008f51]">CTT, Uber ou Recolha</span>
+                <span className="font-semibold text-[#008f51]">
+                  {cttEnabled ? t('quote_delivery_val') : t('quote_delivery_val_no_ctt')}
+                </span>
               </div>
             </div>
 

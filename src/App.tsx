@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { CartProvider, useCart } from './context/CartContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
+import { StoreSettingsProvider, useStoreSettings } from './context/StoreSettingsContext';
 import { TopBar } from './components/TopBar';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -24,6 +25,7 @@ import { ContactModal } from './components/ContactModal';
 import { OrderTrackingModal } from './components/OrderTrackingModal';
 import { CustomerProfileModal } from './components/CustomerProfileModal';
 import { BudgetQuoteSection } from './components/BudgetQuoteSection';
+import { CustomerSuggestionSection } from './components/CustomerSuggestionSection';
 import { AdminPanel } from './components/AdminPanel';
 import { PRODUCTS } from './data/products';
 import { getPublicProducts } from './lib/supabase';
@@ -50,6 +52,8 @@ function AppContent() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  const { refreshStoreSettings } = useStoreSettings();
+
   // Fetch public products from Supabase (or fallback cleanly if table not created yet)
   useEffect(() => {
     getPublicProducts()
@@ -59,7 +63,8 @@ function AppContent() {
         }
       })
       .catch(() => {});
-  }, [isAdminRoute]);
+    refreshStoreSettings();
+  }, [isAdminRoute, refreshStoreSettings]);
 
   // Modals state
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
@@ -164,6 +169,9 @@ function AppContent() {
 
         {/* 7. Aba de Orçamento Direto 3D via WhatsApp com Amostra e Quantidade */}
         <BudgetQuoteSection onBackToShop={handleExploreProducts} />
+
+        {/* 8. Aba de Sugestão Livre de Produtos para Adicionar à Loja */}
+        <CustomerSuggestionSection />
       </main>
 
       {/* 9. Footer with Refer-a-friend WhatsApp button and MB WAY notice */}
@@ -301,9 +309,11 @@ function AppContent() {
 export default function App() {
   return (
     <LanguageProvider>
-      <CartProvider>
-        <AppContent />
-      </CartProvider>
+      <StoreSettingsProvider>
+        <CartProvider>
+          <AppContent />
+        </CartProvider>
+      </StoreSettingsProvider>
     </LanguageProvider>
   );
 }

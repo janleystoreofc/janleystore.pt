@@ -23,7 +23,9 @@ import {
   Sparkles,
   ExternalLink,
   Search,
-  Check
+  Check,
+  Truck,
+  Lightbulb
 } from 'lucide-react';
 import {
   supabase,
@@ -34,16 +36,30 @@ import {
   deleteProduct,
   toggleProductVisibility,
   uploadProductImage,
+  getCustomerSuggestions,
+  deleteCustomerSuggestion,
   SUPABASE_SCHEMA_SQL,
-  DbProduct
+  DbProduct,
+  DbCustomerSuggestion
 } from '../lib/supabase';
-import { CATEGORIES, JANLEY_COLORS, VASO_COLORS } from '../data/products';
+import { JANLEY_COLORS, VASO_COLORS } from '../data/products';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 
 interface AdminPanelProps {
   onBackToShop: () => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
+  const {
+    cttEnabled,
+    savingCttSetting,
+    toggleCttEnabled,
+    customCategories,
+    allCategories,
+    savingCategory,
+    addCategory,
+    removeCategory,
+  } = useStoreSettings();
   // Auth state
   const [session, setSession] = useState<any>(null);
   const [authEmail, setAuthEmail] = useState('');
@@ -53,6 +69,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
 
   // Products and table status state
   const [products, setProducts] = useState<DbProduct[]>([]);
+  const [suggestions, setSuggestions] = useState<DbCustomerSuggestion[]>([]);
+  const [suggestionsTableCreated, setSuggestionsTableCreated] = useState<boolean>(true);
   const [isTableCreated, setIsTableCreated] = useState<boolean>(true);
   const [copiedSql, setCopiedSql] = useState(false);
   const [showSqlCode, setShowSqlCode] = useState(false);
@@ -65,6 +83,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<DbProduct | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Modal create custom category state
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [catName, setCatName] = useState('');
+  const [catDescription, setCatDescription] = useState('');
+  const [catImage, setCatImage] = useState('');
+  const [uploadingCatImage, setUploadingCatImage] = useState(false);
+  const [confirmDeleteCatId, setConfirmDeleteCatId] = useState<string | null>(null);
 
   // Form fields
   const [formData, setFormData] = useState({
@@ -96,13 +122,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
     }
   }, []);
 
-  // Fetch products safely without unhandled PGRST205
+  // Fetch products & suggestions safely without unhandled PGRST205
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const result = await getAllAdminProducts();
+      const [result, sugResult] = await Promise.all([
+        getAllAdminProducts(),
+        getCustomerSuggestions(),
+      ]);
       setProducts(result.products);
       setIsTableCreated(result.isTableCreated);
+      setSuggestions(sugResult.suggestions);
+      setSuggestionsTableCreated(sugResult.isTableCreated);
       if (result.error && result.isTableCreated) {
         showToast('error', result.error);
       }
@@ -265,6 +296,66 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
     }
   };
 
+  // Upload category image handler
+  const handleCategoryImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingCatImage(true);
+    try {
+      if (isSupabaseConfigured) {
+        const publicUrl = await uploadProductImage(file);
+        setCatImage(publicUrl);
+      } else {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (event.target?.result) resolve(event.target.result as string);
+            else reject(new Error('Falha ao ler imagem'));
+          };
+          reader.onerror = () => reject(new Error('Falha ao ler imagem'));
+          reader.readAsDataURL(file);
+        });
+        setCatImage(dataUrl);
+      }
+    } catch (err: any) {
+      showToast('error', `Falha ao carregar imagem da categoria: ${err?.message || 'Erro desconhecido'}`);
+    } finally {
+      setUploadingCatImage(false);
+    }
+  };
+
+  // Create custom category handler
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!catName.trim()) {
+      showToast('error', 'Insere o nome da nova categoria.');
+      return;
+    }
+
+    try {
+      const created = await addCategory({
+        name: catName,
+        description: catDescription,
+        image: catImage || undefined,
+      });
+      if (isModalOpen) {
+        setFormData((prev) => ({
+          ...prev,
+          categoryId: created.id,
+          category: created.name,
+        }));
+      }
+      setCatName('');
+      setCatDescription('');
+      setCatImage('');
+      setIsCategoryModalOpen(false);
+      showToast('success', `Categoria "${created.name}" criada! Já está visível na loja e pronta para novos produtos.`);
+    } catch (err: any) {
+      showToast('error', err?.message || 'Erro ao criar categoria.');
+    }
+  };
+
   // Save product (create or update)
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -300,6 +391,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
               })
             : JANLEY_COLORS);
 
+      const existingReviews = editingProduct?.reviews_count;
+      const randomReviewsCount = Math.floor(Math.random() * 28) + 5; // 5 a 32 avaliações aleatórias
+      const randomRatings = [4.8, 4.9, 5.0];
+      const randomRating = randomRatings[Math.floor(Math.random() * randomRatings.length)];
+
       const payload = {
         name: formData.name.trim(),
         price: numPrice,
@@ -314,8 +410,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
         images: formData.images,
         image: primaryImage,
         colors: productColors,
-        rating: editingProduct?.rating || 5.0,
-        reviews_count: editingProduct?.reviews_count || 0,
+        rating: editingProduct?.rating && editingProduct.rating > 0 ? editingProduct.rating : randomRating,
+        reviews_count: existingReviews && existingReviews > 0 ? existingReviews : randomReviewsCount,
       };
 
       if (editingProduct) {
@@ -681,8 +777,82 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
               </div>
               <div className="bg-white rounded-2xl p-4 border border-[#fae4e1] shadow-2xs">
                 <span className="text-[11px] font-bold text-[#d97706] uppercase tracking-wider">Categorias</span>
-                <div className="text-2xl font-bold text-[#d97706] mt-1">{CATEGORIES.length}</div>
+                <div className="text-2xl font-bold text-[#d97706] mt-1">{allCategories.length}</div>
               </div>
+            </div>
+
+            {/* Delivery Mode Control: CTT Toggle */}
+            <div
+              className={`rounded-2xl p-4 sm:p-5 border shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
+                cttEnabled
+                  ? 'bg-emerald-50/70 border-emerald-200'
+                  : 'bg-amber-50/80 border-amber-200'
+              }`}
+            >
+              <div className="flex items-start sm:items-center gap-3.5">
+                <div
+                  className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-2xs ${
+                    cttEnabled
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-amber-500 text-white'
+                  }`}
+                >
+                  <Truck className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-bold text-[#33221e]">
+                      Estado das Entregas por CTT
+                    </h3>
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                        cttEnabled
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-amber-600 text-white'
+                      }`}
+                    >
+                      {cttEnabled ? 'CTT Ativo' : 'Só Uber & Recolha'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#5e433d] mt-1">
+                    {cttEnabled
+                      ? 'A loja está a aceitar envios nacionais por CTT Expresso, além de Uber Flash e Recolha em Guimarães.'
+                      : 'Os envios por CTT estão pausados. Os clientes veem apenas Uber Flash e Recolha no Atelier.'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                disabled={savingCttSetting}
+                onClick={async () => {
+                  try {
+                    const next = await toggleCttEnabled();
+                    showToast(
+                      'success',
+                      next
+                        ? 'Envios por CTT ATIVADOS na loja!'
+                        : 'Envios por CTT DESATIVADOS — loja agora apenas com Uber Flash e Recolha.'
+                    );
+                  } catch (err: any) {
+                    showToast('error', err?.message || 'Erro ao atualizar modo de entrega.');
+                  }
+                }}
+                className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 flex-shrink-0 ${
+                  cttEnabled
+                    ? 'bg-white border border-amber-300 text-amber-800 hover:bg-amber-50'
+                    : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                }`}
+              >
+                {savingCttSetting ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Truck className="w-4 h-4" />
+                )}
+                <span>
+                  {cttEnabled ? 'Desativar CTT (Só Uber / Recolha)' : 'Ativar Entregas por CTT'}
+                </span>
+              </button>
             </div>
 
             {/* Actions Bar: Search, Category Filter, Add Button */}
@@ -707,19 +877,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                   className="w-full sm:w-48 bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3 py-1.5 text-xs outline-hidden text-[#33221e]"
                 >
                   <option value="todas">Todas as Categorias</option>
-                  {CATEGORIES.map((cat) => (
+                  {allCategories.map((cat) => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
                 </select>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={loadProducts}
                   className="p-2.5 rounded-xl border border-[#fae4e1] text-[#735953] hover:text-[#d97706] hover:bg-[#fdedea] transition-colors cursor-pointer"
                   title="Atualizar lista"
                 >
                   <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#d97706]' : ''}`} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(true)}
+                  className="bg-[#fff7ed] hover:bg-[#ffedd5] border border-[#fed7aa] text-[#b45309] font-bold text-xs uppercase tracking-wider py-2.5 px-3.5 rounded-xl shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Layers className="w-4 h-4" />
+                  <span>Nova Categoria</span>
                 </button>
 
                 <button
@@ -731,6 +910,84 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                 </button>
               </div>
             </div>
+
+            {/* Custom Categories Strip (when admin created categories exist) */}
+            {customCategories.length > 0 && (
+              <div className="bg-white rounded-2xl p-4 border border-[#fae4e1] shadow-2xs space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-[#d97706]" />
+                    <h3 className="text-xs font-bold text-[#33221e] uppercase tracking-wider">
+                      Categorias Criadas por Ti ({customCategories.length})
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsCategoryModalOpen(true)}
+                    className="text-[11px] font-bold text-[#d97706] hover:underline cursor-pointer"
+                  >
+                    + Criar outra
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-2.5">
+                  {customCategories.map((cat) => (
+                    <div
+                      key={cat.id}
+                      className="flex items-center gap-2.5 bg-[#faf7f5] border border-[#fae4e1] rounded-xl pl-2 pr-2.5 py-1.5"
+                    >
+                      <img
+                        src={cat.image || '/images/cat_outros.jpg'}
+                        alt={cat.name}
+                        className="w-8 h-8 rounded-full object-cover border border-[#e7cfc9]"
+                      />
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-[#33221e] leading-tight">{cat.name}</div>
+                        {cat.description && (
+                          <div className="text-[10px] text-[#735953] truncate max-w-[160px]">{cat.description}</div>
+                        )}
+                      </div>
+                      {confirmDeleteCatId === cat.id ? (
+                        <div className="flex items-center gap-1 ml-1">
+                          <button
+                            type="button"
+                            disabled={savingCategory}
+                            onClick={async () => {
+                              try {
+                                await removeCategory(cat.id);
+                                setConfirmDeleteCatId(null);
+                                showToast('success', `Categoria "${cat.name}" removida.`);
+                              } catch (err: any) {
+                                showToast('error', err?.message || 'Erro ao remover categoria.');
+                              }
+                            }}
+                            className="text-[10px] font-bold bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-lg cursor-pointer"
+                          >
+                            Confirmar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteCatId(null)}
+                            className="text-[10px] font-bold text-[#735953] hover:text-[#33221e] px-1.5 py-1 cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeleteCatId(cat.id)}
+                          className="p-1 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer ml-1"
+                          title={`Remover categoria "${cat.name}"`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Products Table */}
             <div className="bg-white rounded-3xl border border-[#fae4e1] shadow-sm overflow-hidden">
@@ -841,6 +1098,81 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                 </table>
               </div>
             </div>
+
+            {/* Customer Suggestions Section in Admin */}
+            <div className="bg-white rounded-3xl border border-[#fae4e1] shadow-sm p-5 sm:p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#fef3c7] text-[#d97706] flex items-center justify-center flex-shrink-0">
+                    <Lightbulb className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[#33221e]">
+                      Sugestões Livres de Clientes ({suggestions.length})
+                    </h3>
+                    <p className="text-[11px] text-[#735953]">
+                      Ideias de novos produtos sugeridas pelos visitantes no final da loja.
+                    </p>
+                  </div>
+                </div>
+
+                {!suggestionsTableCreated && isSupabaseConfigured && (
+                  <button
+                    type="button"
+                    onClick={handleCopySql}
+                    className="inline-flex items-center gap-1.5 bg-[#fef3c7] hover:bg-[#fde68a] text-[#b45309] text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copiar SQL (Ativar tabela de sugestões)</span>
+                  </button>
+                )}
+              </div>
+
+              {suggestions.length === 0 ? (
+                <div className="text-center py-6 text-xs text-[#735953] bg-[#faf7f5] rounded-2xl border border-[#fae4e1]">
+                  {suggestionsTableCreated
+                    ? 'Ainda não foram registadas sugestões na base de dados.'
+                    : 'As sugestões enviadas via WhatsApp chegam diretamente ao teu telemóvel. Para também as guardar aqui, executa o bloco SQL nº 9 (product_suggestions) no Supabase.'}
+                </div>
+              ) : (
+                <div className="divide-y divide-[#fbedea] border border-[#fae4e1] rounded-2xl overflow-hidden">
+                  {suggestions.map((sug) => (
+                    <div key={sug.id} className="p-4 flex items-start justify-between gap-3 hover:bg-[#fef9f8] transition-colors">
+                      <div className="space-y-1 min-w-0">
+                        <p className="text-xs sm:text-sm text-[#33221e] font-medium leading-relaxed">
+                          "{sug.suggestion}"
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#735953]">
+                          <span className="font-semibold text-[#5e433d]">
+                            {sug.client_name || 'Cliente Anónimo'}
+                          </span>
+                          {sug.client_contact && (
+                            <span>• {sug.client_contact}</span>
+                          )}
+                          <span>• {new Date(sug.created_at).toLocaleDateString('pt-PT')}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await deleteCustomerSuggestion(sug.id);
+                            setSuggestions((prev) => prev.filter((item) => item.id !== sug.id));
+                            showToast('success', 'Sugestão removida.');
+                          } catch (err: any) {
+                            showToast('error', err?.message || 'Erro ao remover sugestão.');
+                          }
+                        }}
+                        className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
+                        title="Remover sugestão"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>
@@ -895,11 +1227,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
 
                   {/* Category */}
                   <div>
-                    <label className="block text-xs font-bold text-[#33221e] mb-1">Categoria *</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-[#33221e]">Categoria *</label>
+                      <button
+                        type="button"
+                        onClick={() => setIsCategoryModalOpen(true)}
+                        className="text-[11px] font-bold text-[#d97706] hover:underline cursor-pointer"
+                      >
+                        + Nova Categoria
+                      </button>
+                    </div>
                     <select
                       value={formData.categoryId}
                       onChange={(e) => {
-                        const selected = CATEGORIES.find((c) => c.id === e.target.value);
+                        const selected = allCategories.find((c) => c.id === e.target.value);
                         setFormData({
                           ...formData,
                           categoryId: e.target.value,
@@ -908,7 +1249,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                       }}
                       className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2 text-sm outline-hidden text-[#33221e]"
                     >
-                      {CATEGORIES.map((cat) => (
+                      {allCategories.map((cat) => (
                         <option key={cat.id} value={cat.id}>{cat.name}</option>
                       ))}
                     </select>
@@ -1030,6 +1371,141 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                       <>
                         <Check className="w-4 h-4 stroke-[2.5]" />
                         <span>{editingProduct ? 'Atualizar Produto' : 'Guardar no Supabase'}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Create New Category */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 z-[60] overflow-y-auto">
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+            onClick={() => setIsCategoryModalOpen(false)}
+          />
+          <div className="min-h-full flex items-center justify-center p-4">
+            <div className="relative bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-[#fae2dc] my-8 animate-in zoom-in-95 duration-200">
+              <button
+                type="button"
+                onClick={() => setIsCategoryModalOpen(false)}
+                className="absolute top-5 right-5 p-2 text-[#7d605a] hover:text-[#d97706] hover:bg-[#fdeef0] rounded-full transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-2.5 mb-1">
+                <div className="w-9 h-9 rounded-xl bg-[#fef3c7] text-[#d97706] flex items-center justify-center">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <h2 className="font-serif-title text-xl font-bold text-[#33221e]">
+                  Nova Categoria
+                </h2>
+              </div>
+              <p className="text-xs text-[#735953] mb-5">
+                Cria uma nova categoria para organizar os teus produtos na loja pública e no painel administrativo.
+              </p>
+
+              <form onSubmit={handleCreateCategory} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#33221e] mb-1">
+                    Nome da Categoria *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={catName}
+                    onChange={(e) => setCatName(e.target.value)}
+                    placeholder="Ex: Casamentos, Animais, Escritório..."
+                    className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2.5 text-sm outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#33221e] mb-1">
+                    Descrição (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    value={catDescription}
+                    onChange={(e) => setCatDescription(e.target.value)}
+                    placeholder="Ex: Lembranças e topos de bolo personalizados"
+                    className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2.5 text-sm outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#33221e] mb-1.5">
+                    Imagem de Capa (Opcional)
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[#fae4e1] bg-[#faf7f5] flex-shrink-0 flex items-center justify-center">
+                      {catImage ? (
+                        <>
+                          <img src={catImage} alt="Pré-visualização" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setCatImage('')}
+                            className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 text-white flex items-center justify-center transition-opacity cursor-pointer"
+                            title="Remover imagem"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <ImageIcon className="w-6 h-6 text-[#b69b95]" />
+                      )}
+                    </div>
+
+                    <label className="flex-1 border-2 border-dashed border-[#e5c5be] hover:border-[#d97706] rounded-xl px-3.5 py-3 flex items-center justify-center gap-2 text-xs font-bold text-[#735953] hover:text-[#d97706] transition-colors cursor-pointer bg-[#faf7f5]">
+                      {uploadingCatImage ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin text-[#d97706]" />
+                          <span>A carregar...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4" />
+                          <span>{catImage ? 'Trocar imagem' : 'Carregar fotografia'}</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCategoryImageUpload}
+                        className="hidden"
+                        disabled={uploadingCatImage}
+                      />
+                    </label>
+                  </div>
+                  <p className="text-[11px] text-[#735953] mt-1.5">
+                    Se não carregares imagem, será usada uma imagem padrão da loja.
+                  </p>
+                </div>
+
+                <div className="pt-2 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsCategoryModalOpen(false)}
+                    className="px-4 py-2.5 rounded-xl border border-[#d8c2bd] text-xs font-bold text-[#4a342f] hover:bg-[#faf7f5] transition-colors cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingCategory || uploadingCatImage}
+                    className="flex-1 bg-[#d97706] hover:bg-[#b45309] disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider py-2.5 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {savingCategory ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 stroke-[2.5]" />
+                        <span>Criar Categoria</span>
                       </>
                     )}
                   </button>

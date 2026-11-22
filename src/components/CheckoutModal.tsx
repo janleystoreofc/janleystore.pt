@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, ShieldCheck, Truck, ArrowLeft, ArrowRight, CreditCard, Smartphone, Building2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -10,10 +11,17 @@ interface CheckoutModalProps {
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onOpenOrderTracking }) => {
   const { items, subtotal, shipping, discount, total, couponCode, clearCart } = useCart();
+  const { cttEnabled } = useStoreSettings();
 
   const [step, setStep] = useState<'details' | 'payment' | 'confirmation'>('details');
 
-  const [deliveryMethod, setDeliveryMethod] = useState<'ctt' | 'uber' | 'recolha'>('ctt');
+  const [deliveryMethod, setDeliveryMethod] = useState<'ctt' | 'uber' | 'recolha'>(cttEnabled ? 'ctt' : 'uber');
+
+  useEffect(() => {
+    if (!cttEnabled && deliveryMethod === 'ctt') {
+      setDeliveryMethod('uber');
+    }
+  }, [cttEnabled, deliveryMethod]);
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -104,7 +112,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                   Opções de Entrega & Envio
                 </h3>
                 <p className="text-xs text-[#735953] mt-1">
-                  Atelier sediado em <strong>Guimarães, Braga - Portugal</strong> 🇵🇹 com envio para Portugal inteiro.
+                  {cttEnabled ? (
+                    <>Atelier sediado em <strong>Guimarães, Braga - Portugal</strong> 🇵🇹 com envio para Portugal inteiro.</>
+                  ) : (
+                    <>Atelier sediado em <strong>Guimarães, Braga - Portugal</strong> 🇵🇹 • Entregas disponíveis por <strong>Uber Flash</strong> ou <strong>Recolha no Atelier</strong>.</>
+                  )}
                 </p>
               </div>
 
@@ -113,24 +125,26 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                 <label className="block text-xs font-bold text-[#33221e] mb-2">
                   Seleciona como desejas receber:
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setDeliveryMethod('ctt')}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      deliveryMethod === 'ctt'
-                        ? 'border-[#f43f7a] bg-[#fef5f7] ring-1.5 ring-[#f43f7a]'
-                        : 'border-[#fae2dc] bg-white hover:border-[#f43f7a]/40'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 font-bold text-xs text-[#33221e]">
-                      <Truck className="w-3.5 h-3.5 text-[#f43f7a]" />
-                      <span>CTT Expresso</span>
-                    </div>
-                    <p className="text-[10px] text-[#735953] mt-0.5">
-                      Todo Portugal Continental & Ilhas
-                    </p>
-                  </button>
+                <div className={`grid grid-cols-1 ${cttEnabled ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-2.5`}>
+                  {cttEnabled && (
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryMethod('ctt')}
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                        deliveryMethod === 'ctt'
+                          ? 'border-[#f43f7a] bg-[#fef5f7] ring-1.5 ring-[#f43f7a]'
+                          : 'border-[#fae2dc] bg-white hover:border-[#f43f7a]/40'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-[#33221e]">
+                        <Truck className="w-3.5 h-3.5 text-[#f43f7a]" />
+                        <span>CTT Expresso</span>
+                      </div>
+                      <p className="text-[10px] text-[#735953] mt-0.5">
+                        Todo Portugal Continental & Ilhas
+                      </p>
+                    </button>
+                  )}
 
                   <button
                     type="button"

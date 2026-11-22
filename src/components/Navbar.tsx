@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Search, User, ShoppingBag, ChevronDown, Menu, X, Heart, Sparkles, Shield } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
-import { CATEGORIES } from '../data/products';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 
 interface NavbarProps {
   activeTab: string;
@@ -31,6 +31,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const { totalItemsCount, setIsCartOpen, favorites } = useCart();
   const { t } = useLanguage();
+  const { allCategories } = useStoreSettings();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesDropdownOpen, setCategoriesDropdownOpen] = useState(false);
   const [personalizadosDropdownOpen, setPersonalizadosDropdownOpen] = useState(false);
@@ -106,11 +107,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               {categoriesDropdownOpen && (
-                <div className="absolute top-full left-0 w-64 bg-white rounded-2xl shadow-xl border border-[#fed7aa] py-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute top-full left-0 w-64 bg-white rounded-2xl shadow-xl border border-[#fed7aa] py-2.5 z-50 max-h-96 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150">
                   <div className="px-3.5 py-1.5 text-[11px] font-bold text-[#b45309] tracking-wider uppercase border-b border-[#fef3c7]">
                     Categorias 3D
                   </div>
-                  {CATEGORIES.map((cat) => (
+                  {allCategories.map((cat) => (
                     <button
                       key={cat.id}
                       onClick={() => {

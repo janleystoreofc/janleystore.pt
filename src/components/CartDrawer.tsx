@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight, Tag, Truck, CheckCircle2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { getProductImageForColor } from '../data/products';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 
 interface CartDrawerProps {
   onProceedToCheckout: () => void;
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) => {
+  const { cttEnabled } = useStoreSettings();
   const {
     items,
     isCartOpen,
@@ -89,33 +91,44 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) =
             </button>
           </div>
 
-          {/* Free Shipping Progress Indicator */}
+          {/* Delivery / Free Shipping Progress Indicator */}
           {items.length > 0 && (
             <div className="px-5 py-3.5 bg-[#fef5f4] border-b border-[#fbdad4] text-xs">
-              <div className="flex items-center justify-between mb-1.5 font-medium">
-                <span className="flex items-center gap-1.5 text-[#5e433d]">
-                  <Truck className="w-4 h-4 text-[#f43f7a]" />
-                  {remainingForFreeShipping > 0 ? (
-                    <span>
-                      Faltam <strong className="text-[#f43f7a]">€ {remainingForFreeShipping.toFixed(2).replace('.', ',')}</strong> para envio grátis em Portugal!
+              {cttEnabled ? (
+                <>
+                  <div className="flex items-center justify-between mb-1.5 font-medium">
+                    <span className="flex items-center gap-1.5 text-[#5e433d]">
+                      <Truck className="w-4 h-4 text-[#f43f7a]" />
+                      {remainingForFreeShipping > 0 ? (
+                        <span>
+                          Faltam <strong className="text-[#f43f7a]">€ {remainingForFreeShipping.toFixed(2).replace('.', ',')}</strong> para envio grátis em Portugal!
+                        </span>
+                      ) : (
+                        <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          Parabéns! Tens Envio Grátis para Portugal!
+                        </span>
+                      )}
                     </span>
-                  ) : (
-                    <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      Parabéns! Tens Envio Grátis para Portugal!
-                    </span>
-                  )}
-                </span>
-                <span className="text-[#8c6760] font-semibold">{shippingProgress}%</span>
-              </div>
+                    <span className="text-[#8c6760] font-semibold">{shippingProgress}%</span>
+                  </div>
 
-              {/* Progress bar */}
-              <div className="w-full bg-[#fae1dc] h-2 rounded-full overflow-hidden">
-                <div
-                  className="bg-[#f43f7a] h-full rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${shippingProgress}%` }}
-                />
-              </div>
+                  {/* Progress bar */}
+                  <div className="w-full bg-[#fae1dc] h-2 rounded-full overflow-hidden">
+                    <div
+                      className="bg-[#f43f7a] h-full rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${shippingProgress}%` }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center gap-2 text-[#5e433d] font-medium">
+                  <Truck className="w-4 h-4 text-[#f43f7a] flex-shrink-0" />
+                  <span>
+                    Entregas disponíveis por <strong>Uber Flash</strong> ou <strong>Recolha em Guimarães</strong> (CTT pausado).
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
@@ -288,7 +301,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) =
                 )}
 
                 <div className="flex justify-between items-center">
-                  <span>Envio para Portugal</span>
+                  <span>{cttEnabled ? 'Envio para Portugal' : 'Entrega (Uber Flash / Recolha)'}</span>
                   <span className="font-semibold text-[#33221e]">
                     {shipping === 0 ? (
                       <span className="text-emerald-700 font-bold bg-emerald-100/70 px-1.5 py-0.5 rounded text-[11px]">

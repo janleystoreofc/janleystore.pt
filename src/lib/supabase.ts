@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Product, ProductColor } from '../types';
+import { Category, Product, ProductColor } from '../types';
 import { PRODUCTS as FALLBACK_PRODUCTS, JANLEY_COLORS, VASO_COLORS } from '../data/products';
 
 // Accept both VITE_SUPABASE_PUBLISHABLE_KEY (Vercel standard) and VITE_SUPABASE_ANON_KEY
@@ -105,6 +105,74 @@ CREATE POLICY "Admins can upload product images" ON storage.objects
     TO authenticated
     USING (bucket_id = 'product-images')
     WITH CHECK (bucket_id = 'product-images');
+
+-- 8. Tabela opcional de configurações da loja (ex: ativar/desativar envios CTT)
+CREATE TABLE IF NOT EXISTS public.store_settings (
+    id TEXT PRIMARY KEY DEFAULT 'default',
+    ctt_enabled BOOLEAN DEFAULT true,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.store_settings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public can view store settings" ON public.store_settings;
+CREATE POLICY "Public can view store settings" ON public.store_settings
+    FOR SELECT
+    USING (true);
+
+DROP POLICY IF EXISTS "Admins can update store settings" ON public.store_settings;
+CREATE POLICY "Admins can update store settings" ON public.store_settings
+    FOR ALL
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
+-- 9. Tabela de sugestões livres de clientes para novos produtos na loja
+CREATE TABLE IF NOT EXISTS public.product_suggestions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_name TEXT DEFAULT '',
+    client_contact TEXT DEFAULT '',
+    suggestion TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.product_suggestions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can submit product suggestions" ON public.product_suggestions;
+CREATE POLICY "Anyone can submit product suggestions" ON public.product_suggestions
+    FOR INSERT
+    TO anon, authenticated
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admins can manage product suggestions" ON public.product_suggestions;
+CREATE POLICY "Admins can manage product suggestions" ON public.product_suggestions
+    FOR ALL
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
+-- 10. Tabela opcional de categorias personalizadas criadas pelo admin
+CREATE TABLE IF NOT EXISTS public.categories (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    image TEXT DEFAULT '/images/cat_outros.jpg',
+    description TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public can view custom categories" ON public.categories;
+CREATE POLICY "Public can view custom categories" ON public.categories
+    FOR SELECT
+    USING (true);
+
+DROP POLICY IF EXISTS "Admins can manage custom categories" ON public.categories;
+CREATE POLICY "Admins can manage custom categories" ON public.categories
+    FOR ALL
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
 `;
 
 // Helper to identify PostgREST PGRST205 or missing table errors
@@ -176,6 +244,10 @@ export function mapDbProductToProduct(item: DbProduct): Product {
   const missingColors = basePalette.filter((c) => !existingNames.has(c.name.trim().toLowerCase()));
   const allProductColors = [...cleanColors, ...missingColors];
 
+  const rawReviews = Number(item.reviews_count || 0);
+  const idSeed = (item.id || item.name || 'janley').split('').reduce((acc, ch) => acc + ch.charCodeAt(0) * 31, 0);
+  const deterministicReviews = 5 + (Math.abs(idSeed) % 28);
+
   return {
     id: item.id,
     name: item.name,
@@ -183,7 +255,7 @@ export function mapDbProductToProduct(item: DbProduct): Product {
     categoryId: item.category_id || 'outros',
     price: Number(item.price),
     rating: Number(item.rating || 5.0),
-    reviewsCount: Number(item.reviews_count || 12),
+    reviewsCount: rawReviews > 0 ? rawReviews : deterministicReviews,
     image: images[0],
     colors: allProductColors,
     description: item.description || '',
@@ -395,4 +467,342 @@ export async function uploadProductImage(file: File): Promise<string> {
     .getPublicUrl(filePath);
 
   return data.publicUrl;
+}
+
+const CTT_STORAGE_PATH = 'config/delivery-settings.json';
+const CTT_LOCAL_CACHE_KEY = 'janley_ctt_enabled';
+
+function readCachedCttSetting(): boolean {
+  try {
+    const val = localStorage.getItem(CTT_LOCAL_CACHE_KEY);
+    if (val === 'false') return false;
+    if (val === 'true') return true;
+  } catch {
+    // ignore storage access issues
+  }
+  return true;
+}
+
+function writeCachedCttSetting(enabled: boolean): void {
+  try {
+    localStorage.setItem(CTT_LOCAL_CACHE_KEY, String(enabled));
+  } catch {
+    // ignore storage access issues
+  }
+}
+
+// Fetch whether CTT shipping is currently enabled by the store admin
+export async function getCttEnabled(): Promise<boolean> {
+  if (!isSupabaseConfigured) {
+    return readCachedCttSetting();
+  }
+
+  try {
+    // 1. Try reading from dedicated store_settings table if present
+    const { data, error } = await supabase
+      .from('store_settings')
+      .select('ctt_enabled')
+      .eq('id', 'default')
+      .maybeSingle();
+
+    if (!error && data && typeof data.ctt_enabled === 'boolean') {
+      writeCachedCttSetting(data.ctt_enabled);
+      return data.ctt_enabled;
+    }
+  } catch {
+    // Fallback to storage config below
+  }
+
+  // 2. Zero-SQL fallback: read config JSON from public product-images bucket
+  try {
+    const { data: urlData } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(CTT_STORAGE_PATH);
+
+    if (urlData?.publicUrl) {
+      const response = await fetch(`${urlData.publicUrl}?t=${Date.now()}`, {
+        cache: 'no-store',
+      });
+      if (response.ok) {
+        const json = await response.json();
+        if (typeof json?.cttEnabled === 'boolean') {
+          writeCachedCttSetting(json.cttEnabled);
+          return json.cttEnabled;
+        }
+      }
+    }
+  } catch {
+    // Default to true if config does not exist yet
+  }
+
+  return readCachedCttSetting();
+}
+
+// Admin: Toggle CTT shipping availability and persist in Supabase
+export async function updateCttEnabled(enabled: boolean): Promise<boolean> {
+  if (!isSupabaseConfigured) {
+    writeCachedCttSetting(enabled);
+    return enabled;
+  }
+
+  // 1. Try saving in store_settings table first
+  try {
+    const { error } = await supabase
+      .from('store_settings')
+      .upsert(
+        {
+          id: 'default',
+          ctt_enabled: enabled,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' }
+      );
+
+    if (!error) {
+      writeCachedCttSetting(enabled);
+      return enabled;
+    }
+  } catch {
+    // Fallback to storage bucket below if store_settings table doesn't exist yet
+  }
+
+  // 2. Fallback: persist JSON configuration in already-existing product-images bucket
+  const payloadBlob = new Blob(
+    [JSON.stringify({ cttEnabled: enabled, updatedAt: new Date().toISOString() })],
+    { type: 'application/json' }
+  );
+
+  const { error: uploadError } = await supabase.storage
+    .from('product-images')
+    .upload(CTT_STORAGE_PATH, payloadBlob, {
+      cacheControl: '0',
+      upsert: true,
+      contentType: 'application/json',
+    });
+
+  if (uploadError) {
+    throw new Error(uploadError.message || 'Erro ao guardar preferência de envio CTT no Supabase.');
+  }
+
+  writeCachedCttSetting(enabled);
+  return enabled;
+}
+
+export interface DbCustomerSuggestion {
+  id: string;
+  client_name: string;
+  client_contact: string;
+  suggestion: string;
+  created_at: string;
+}
+
+export async function submitCustomerSuggestion(payload: {
+  client_name?: string;
+  client_contact?: string;
+  suggestion: string;
+}): Promise<{ savedToDb: boolean }> {
+  const cleanPayload = {
+    client_name: (payload.client_name || '').trim(),
+    client_contact: (payload.client_contact || '').trim(),
+    suggestion: payload.suggestion.trim(),
+  };
+
+  if (!isSupabaseConfigured) {
+    return { savedToDb: false };
+  }
+
+  try {
+    const { error } = await supabase
+      .from('product_suggestions')
+      .insert([cleanPayload]);
+
+    if (error) {
+      return { savedToDb: false };
+    }
+    return { savedToDb: true };
+  } catch {
+    return { savedToDb: false };
+  }
+}
+
+export async function getCustomerSuggestions(): Promise<{
+  suggestions: DbCustomerSuggestion[];
+  isTableCreated: boolean;
+}> {
+  if (!isSupabaseConfigured) {
+    return { suggestions: [], isTableCreated: false };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('product_suggestions')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      const msg = typeof error.message === 'string' ? error.message : '';
+      const isMissing = error.code === 'PGRST205' || msg.includes('product_suggestions') || msg.includes('schema cache');
+      return { suggestions: [], isTableCreated: !isMissing };
+    }
+
+    return {
+      suggestions: (data || []) as DbCustomerSuggestion[],
+      isTableCreated: true,
+    };
+  } catch {
+    return { suggestions: [], isTableCreated: false };
+  }
+}
+
+export async function deleteCustomerSuggestion(id: string): Promise<void> {
+  if (!isSupabaseConfigured) return;
+  const { error } = await supabase
+    .from('product_suggestions')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
+}
+
+const CATEGORIES_STORAGE_PATH = 'config/custom-categories.json';
+const CATEGORIES_LOCAL_CACHE_KEY = 'janley_custom_categories';
+
+function readCachedCustomCategories(): Category[] {
+  try {
+    const raw = localStorage.getItem(CATEGORIES_LOCAL_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCachedCustomCategories(categories: Category[]): void {
+  try {
+    localStorage.setItem(CATEGORIES_LOCAL_CACHE_KEY, JSON.stringify(categories));
+  } catch {
+    // ignore storage access issues
+  }
+}
+
+export function slugifyCategoryId(name: string): string {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || `cat-${Date.now()}`;
+}
+
+export async function getCustomCategories(): Promise<Category[]> {
+  if (!isSupabaseConfigured) {
+    return readCachedCustomCategories();
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name, image, description')
+      .order('created_at', { ascending: true });
+
+    if (!error && Array.isArray(data)) {
+      const mapped: Category[] = data.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        image: row.image || '/images/cat_outros.jpg',
+        description: row.description || '',
+      }));
+      writeCachedCustomCategories(mapped);
+      return mapped;
+    }
+  } catch {
+    // Fallback to storage bucket JSON below
+  }
+
+  try {
+    const { data: urlData } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(CATEGORIES_STORAGE_PATH);
+
+    if (urlData?.publicUrl) {
+      const response = await fetch(`${urlData.publicUrl}?t=${Date.now()}`, {
+        cache: 'no-store',
+      });
+      if (response.ok) {
+        const parsed = await response.json();
+        if (Array.isArray(parsed)) {
+          writeCachedCustomCategories(parsed);
+          return parsed;
+        }
+      }
+    }
+  } catch {
+    // Fallback to cached categories
+  }
+
+  return readCachedCustomCategories();
+}
+
+export async function saveCustomCategories(categories: Category[]): Promise<Category[]> {
+  if (!isSupabaseConfigured) {
+    writeCachedCustomCategories(categories);
+    return categories;
+  }
+
+  // Always try storage JSON persistence first or in parallel so it works zero-SQL immediately
+  let savedViaTable = false;
+  try {
+    const { data: existing, error: fetchError } = await supabase
+      .from('categories')
+      .select('id');
+
+    if (!fetchError) {
+      const nextIds = new Set(categories.map((c) => c.id));
+      const toDelete = (existing || [])
+        .map((row: any) => row.id)
+        .filter((id: string) => !nextIds.has(id));
+
+      if (toDelete.length > 0) {
+        await supabase.from('categories').delete().in('id', toDelete);
+      }
+
+      if (categories.length > 0) {
+        const { error: upsertError } = await supabase.from('categories').upsert(
+          categories.map((c) => ({
+            id: c.id,
+            name: c.name,
+            image: c.image || '/images/cat_outros.jpg',
+            description: c.description || '',
+          })),
+          { onConflict: 'id' }
+        );
+        if (!upsertError) {
+          savedViaTable = true;
+        }
+      } else {
+        savedViaTable = true;
+      }
+    }
+  } catch {
+    // Fallback to storage bucket
+  }
+
+  if (!savedViaTable) {
+    const blob = new Blob([JSON.stringify(categories)], { type: 'application/json' });
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(CATEGORIES_STORAGE_PATH, blob, {
+        cacheControl: '0',
+        upsert: true,
+        contentType: 'application/json',
+      });
+
+    if (uploadError) {
+      throw new Error(uploadError.message || 'Erro ao guardar categorias no Supabase.');
+    }
+  }
+
+  writeCachedCustomCategories(categories);
+  return categories;
 }

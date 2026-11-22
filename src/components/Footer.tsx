@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Instagram, Send, CheckCircle2, Share2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 
 interface FooterProps {
   onSelectCategory: (categoryId: string) => void;
@@ -24,6 +25,7 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenAdmin,
 }) => {
   const { t } = useLanguage();
+  const { cttEnabled } = useStoreSettings();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [shareFeedback, setShareFeedback] = useState(false);
@@ -238,7 +240,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={() => onOpenHelpModal('Envios e Prazos')}
                   className="hover:text-[#d97706] transition-colors cursor-pointer"
                 >
-                  Envios CTT & Uber Flash
+                  {cttEnabled ? 'Envios CTT & Uber Flash' : 'Uber Flash & Recolha'}
                 </button>
               </li>
               <li>
@@ -291,7 +293,7 @@ export const Footer: React.FC<FooterProps> = ({
         <div className="pt-6 flex items-center justify-center sm:justify-start text-xs text-[#78350f]">
           {/* Compact location and delivery one-liner */}
           <div className="text-center sm:text-left font-medium flex items-center gap-2">
-            <span>{t('footer_delivery_bottom')}</span>
+            <span>{cttEnabled ? t('footer_delivery_bottom') : t('footer_delivery_bottom_no_ctt')}</span>
             {onOpenAdmin && (
               <button
                 onClick={onOpenAdmin}

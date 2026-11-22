@@ -1,6 +1,7 @@
 import React from 'react';
 import { Truck, Phone, Globe } from 'lucide-react';
 import { useLanguage, Language } from '../context/LanguageContext';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 
 interface TopBarProps {
   onOpenContact?: () => void;
@@ -9,6 +10,7 @@ interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = () => {
   const { language, setLanguage, t } = useLanguage();
+  const { cttEnabled } = useStoreSettings();
 
   return (
     <div className="bg-[#2b170c] text-[#f5ede6] text-[11px] py-1 px-3 sm:px-6 border-b border-[#3d2010] transition-colors">
@@ -17,7 +19,7 @@ export const TopBar: React.FC<TopBarProps> = () => {
         <div className="flex items-center gap-1.5 min-w-0 font-medium">
           <Truck className="w-3 h-3 text-[#f59e0b] flex-shrink-0" />
           <span className="truncate text-[#f5ede6]">
-            {t('entrega_info')}
+            {cttEnabled ? t('entrega_info') : t('entrega_info_no_ctt')}
           </span>
         </div>
 
