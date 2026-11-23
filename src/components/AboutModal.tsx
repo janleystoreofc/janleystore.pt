@@ -16,9 +16,9 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenC
   const content = {
     pt: {
       title: 'Sobre a Janley Store',
-      location: 'Atelier em Guimarães, Braga - Portugal 🇵🇹 • Entregas CTT, Uber ou Recolha',
+      location: 'Loja em Guimarães, Braga - Portugal 🇵🇹 • Entregas CTT, Uber ou Recolha',
       desc1: 'A',
-      desc2: 'nasceu da paixão por dar vida e forma a ideias inovadoras através da tecnologia de impressão 3D. Cada peça é cuidadosamente desenhada, testada e fabricada camada a camada em Guimarães, com entregas rápidas para todo o território português via CTT Expresso, Uber Flash ou recolha direta no atelier. Pagamento exclusivo e seguro por MB WAY.',
+      desc2: 'nasceu da paixão por dar vida e forma a ideias inovadoras através da tecnologia de impressão 3D. Cada peça é cuidadosamente desenhada, testada e fabricada camada a camada em Guimarães, com entregas rápidas para todo o território português via CTT Expresso, Uber Flash ou recolha direta na loja. Pagamento exclusivo e seguro por MB WAY.',
       feature1Title: 'Design Exclusivo',
       feature1Desc: 'Linhas orgânicas, padrões canelados e acabamentos modernos que valorizam qualquer ambiente.',
       feature2Title: 'Filamentos Ecológicos',
@@ -58,9 +58,9 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenC
     },
     fr: {
       title: 'À Propos de Janley Store',
-      location: 'Atelier à Guimarães, Braga - Portugal 🇵🇹 • Livraisons CTT, Uber ou Retrait',
+      location: 'Loja à Guimarães, Braga - Portugal 🇵🇹 • Livraisons CTT, Uber ou Retrait',
       desc1: '',
-      desc2: 'est née de la passion de donner vie aux idées grâce à la technologie d\'impression 3D. Chaque pièce est conçue, testée et imprimée 3D couche par couche à Guimarães, avec expédition rapide dans tout le Portugal via CTT Expresso, Uber Flash ou retrait direct à l\'atelier. Paiement sécurisé via MB WAY.',
+      desc2: 'est née de la passion de donner vie aux idées grâce à la technologie d\'impression 3D. Chaque pièce est conçue, testée et imprimée 3D couche par couche à Guimarães, avec expédition rapide dans tout le Portugal via CTT Expresso, Uber Flash ou retrait direct en boutique. Paiement sécurisé via MB WAY.',
       feature1Title: 'Design Exclusif',
       feature1Desc: 'Lignes épurées, textures élégantes et finitions modernes pour sublimer vos intérieurs.',
       feature2Title: 'Filaments Écologiques',
@@ -72,7 +72,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, onOpenC
     },
   }[language] || {
     title: 'Sobre a Janley Store',
-    location: 'Atelier em Guimarães, Braga - Portugal 🇵🇹 • Entregas CTT, Uber ou Recolha',
+    location: 'Loja em Guimarães, Braga - Portugal 🇵🇹 • Entregas CTT, Uber ou Recolha',
     desc1: 'A',
     desc2: 'nasceu da paixão por dar vida e forma a ideias inovadoras através da tecnologia de impressão 3D.',
     feature1Title: 'Design Exclusivo',

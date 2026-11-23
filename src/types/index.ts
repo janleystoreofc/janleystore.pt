@@ -23,6 +23,7 @@ export interface Product {
   material?: string;
   isFeatured?: boolean;
   isBestseller?: boolean;
+  allowCustomName?: boolean;
 }
 
 export interface CartItem {

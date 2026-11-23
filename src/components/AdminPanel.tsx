@@ -25,7 +25,12 @@ import {
   Search,
   Check,
   Truck,
-  Lightbulb
+  Lightbulb,
+  Send,
+  Download,
+  UserCheck,
+  Type,
+  Star
 } from 'lucide-react';
 import {
   supabase,
@@ -35,12 +40,28 @@ import {
   updateProduct,
   deleteProduct,
   toggleProductVisibility,
+  toggleProductCustomizable,
   uploadProductImage,
   getCustomerSuggestions,
   deleteCustomerSuggestion,
+  getCustomerLeads,
+  updateCustomerLeadStatus,
+  deleteCustomerLead,
+  getProductReviews,
+  deleteProductReview,
+  getTrackedOrders,
+  upsertTrackedOrder,
+  deleteTrackedOrder,
+  getStorePickupSettings,
+  saveStorePickupSettings,
   SUPABASE_SCHEMA_SQL,
   DbProduct,
-  DbCustomerSuggestion
+  DbCustomerSuggestion,
+  DbCustomerLead,
+  DbProductReview,
+  DbTrackedOrder,
+  DeliveryMethodType,
+  OrderStage
 } from '../lib/supabase';
 import { JANLEY_COLORS, VASO_COLORS } from '../data/products';
 import { useStoreSettings } from '../context/StoreSettingsContext';
@@ -71,6 +92,51 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [suggestions, setSuggestions] = useState<DbCustomerSuggestion[]>([]);
   const [suggestionsTableCreated, setSuggestionsTableCreated] = useState<boolean>(true);
+  const [customerLeads, setCustomerLeads] = useState<DbCustomerLead[]>([]);
+  const [leadsTableCreated, setLeadsTableCreated] = useState<boolean>(true);
+  const [productReviews, setProductReviews] = useState<DbProductReview[]>([]);
+  const [reviewsTableCreated, setReviewsTableCreated] = useState<boolean>(true);
+  const [trackedOrders, setTrackedOrders] = useState<DbTrackedOrder[]>([]);
+  const [ordersTableCreated, setOrdersTableCreated] = useState<boolean>(true);
+  const [pickupAddress, setPickupAddress] = useState('');
+  const [pickupNote, setPickupNote] = useState('');
+  const [savingPickup, setSavingPickup] = useState(false);
+
+  // Admin Order Editor Form
+  const [orderForm, setOrderForm] = useState<{
+    order_number: string;
+    delivery_method: DeliveryMethodType;
+    client_name: string;
+    destination: string;
+    product_name: string;
+    stage: OrderStage;
+    tracking_code: string;
+    uber_fee: string;
+    uber_ok: boolean;
+    uber_dispatched: boolean;
+    uber_note: string;
+    pickup_address: string;
+    pickup_note: string;
+  }>({
+    order_number: '',
+    delivery_method: 'ctt',
+    client_name: '',
+    destination: '',
+    product_name: '',
+    stage: 'Queued',
+    tracking_code: '',
+    uber_fee: '',
+    uber_ok: false,
+    uber_dispatched: false,
+    uber_note: '',
+    pickup_address: '',
+    pickup_note: '',
+  });
+  const [savingOrder, setSavingOrder] = useState(false);
+
+  const [selectedEmailTemplate, setSelectedEmailTemplate] = useState<
+    'welcome10' | 'novidades' | 'guimaraes15' | 'personalizado'
+  >('welcome10');
   const [isTableCreated, setIsTableCreated] = useState<boolean>(true);
   const [copiedSql, setCopiedSql] = useState(false);
   const [showSqlCode, setShowSqlCode] = useState(false);
@@ -104,6 +170,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
     is_featured: false,
     is_bestseller: false,
     is_hidden: false,
+    is_customizable: false,
+    rating: '5.0',
+    reviews_count: '0',
     images: [] as string[],
   });
 
@@ -126,14 +195,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const [result, sugResult] = await Promise.all([
+      const [result, sugResult, leadsResult, reviewsResult, ordersResult, pickupRes] = await Promise.all([
         getAllAdminProducts(),
         getCustomerSuggestions(),
+        getCustomerLeads(),
+        getProductReviews(),
+        getTrackedOrders(),
+        getStorePickupSettings(),
       ]);
       setProducts(result.products);
       setIsTableCreated(result.isTableCreated);
       setSuggestions(sugResult.suggestions);
       setSuggestionsTableCreated(sugResult.isTableCreated);
+      setCustomerLeads(leadsResult.leads);
+      setLeadsTableCreated(leadsResult.isTableCreated);
+      setProductReviews(reviewsResult.reviews);
+      setReviewsTableCreated(reviewsResult.isTableCreated);
+      setTrackedOrders(ordersResult.orders);
+      setOrdersTableCreated(ordersResult.isTableCreated);
+      setPickupAddress(pickupRes.address);
+      setPickupNote(pickupRes.note);
       if (result.error && result.isTableCreated) {
         showToast('error', result.error);
       }
@@ -158,6 +239,93 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
     setCopiedSql(true);
     showToast('success', 'Script SQL copiado com sucesso! Cola-o no SQL Editor do Supabase.');
     setTimeout(() => setCopiedSql(false), 4000);
+  };
+
+  const buildMailtoHref = (
+    lead: DbCustomerLead,
+    template: 'welcome10' | 'novidades' | 'guimaraes15' | 'personalizado'
+  ) => {
+    const firstName = lead.name ? lead.name.split(' ')[0] : 'Cliente';
+    const storeUrl = typeof window !== 'undefined' ? window.location.origin : 'https://janleystore.pt';
+
+    let subject = 'Convite especial da Janley Store 3D';
+    let body = '';
+
+    if (template === 'welcome10') {
+      subject = `Olá ${firstName}! 10% de desconto na tua 1.ª peça 3D — Janley Store`;
+      body = `Olá ${firstName},\n\nObrigado por visitares e registares-te na Janley Store (Impressão 3D em Guimarães)!\n\nPara te ajudar a escolher a tua primeira peça, oferecemos o cupão JANLEY10 com 10% de desconto em toda a loja.\n\nExplora o catálogo aqui: ${storeUrl}\n\nQualquer dúvida ou ideia personalizada, responde a este e-mail ou fala connosco no WhatsApp (+351 935 742 686).\n\nCom os melhores cumprimentos,\nJanley Store`;
+    } else if (template === 'novidades') {
+      subject = `Novas peças em Impressão 3D na Janley Store, ${firstName}!`;
+      body = `Olá ${firstName},\n\nTemos novas criações em impressão 3D ecológica (chaveiros, organização, decoração e lembranças para eventos) disponíveis no nosso catálogo!\n\nVê todas as novidades aqui: ${storeUrl}\n\nLembra-te que podes encomendar em packs promocionais ou pedir peças 100% personalizadas com o teu nome ou logótipo.\n\nAté já,\nJanley Store — Guimarães`;
+    } else if (template === 'guimaraes15') {
+      subject = `Oferta Especial 15% OFF (Cupão GUIMARAES) — Janley Store`;
+      body = `Olá ${firstName},\n\nPreparamos um mimo especial para ti: usa o cupão GUIMARAES e recebe 15% de desconto na tua próxima encomenda na Janley Store!\n\nAcede à loja: ${storeUrl}\n\nSe preferires recolha em Guimarães ou entrega rápida por Uber Flash, seleciona essa opção no checkout.\n\nCom os melhores cumprimentos,\nJanley Store`;
+    } else {
+      subject = `Cria a tua peça 3D personalizada — Janley Store`;
+      body = `Olá ${firstName},\n\nTens alguma ideia em mente para um presente, evento ou peça útil em casa? Na Janley Store fazemos impressão 3D por medida e sob consulta!\n\nEnvia-nos a tua ideia aqui: ${storeUrl}\nOu responde diretamente a este e-mail para prepararmos um orçamento sem compromisso.\n\nCom os melhores cumprimentos,\nJanley Store`;
+    }
+
+    return `mailto:${encodeURIComponent(lead.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  const handleMarkInvited = async (lead: DbCustomerLead) => {
+    const now = new Date().toISOString();
+    setCustomerLeads((prev) =>
+      prev.map((item) =>
+        item.id === lead.id
+          ? { ...item, follow_up_status: 'enviado', last_contacted_at: now }
+          : item
+      )
+    );
+    await updateCustomerLeadStatus(lead.id, 'enviado', true);
+    showToast('success', `Rascunho de convite aberto para ${lead.email}. Estado marcado como "Convidado".`);
+  };
+
+  const handleChangeLeadStatus = async (
+    leadId: string,
+    status: 'pendente' | 'enviado' | 'interessado'
+  ) => {
+    setCustomerLeads((prev) =>
+      prev.map((item) => (item.id === leadId ? { ...item, follow_up_status: status } : item))
+    );
+    await updateCustomerLeadStatus(leadId, status, status === 'enviado');
+    showToast('success', 'Estado do cliente atualizado.');
+  };
+
+  const handleCopyAllLeadEmails = () => {
+    if (customerLeads.length === 0) return;
+    const list = customerLeads.map((l) => l.email).join(', ');
+    navigator.clipboard.writeText(list);
+    showToast('success', `${customerLeads.length} e-mails copiados para a área de transferência!`);
+  };
+
+  const handleExportLeadsCsv = () => {
+    if (customerLeads.length === 0) return;
+    const header = 'Nome,Email,Origem,Acessos,Estado,Ultimo Acesso,Ultimo Convite\n';
+    const rows = customerLeads
+      .map((l) => {
+        const safe = (v: string) => `"${(v || '').replace(/"/g, '""')}"`;
+        return [
+          safe(l.name || 'Cliente'),
+          safe(l.email),
+          safe(l.source),
+          l.login_count || 1,
+          safe(l.follow_up_status),
+          safe(l.last_seen_at),
+          safe(l.last_contacted_at || ''),
+        ].join(',');
+      })
+      .join('\n');
+    const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `janley-clientes-logins-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast('success', 'Lista de contactos exportada em CSV!');
   };
 
   // Auth handler
@@ -212,6 +380,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
       is_featured: false,
       is_bestseller: false,
       is_hidden: false,
+      is_customizable: false,
+      rating: '5.0',
+      reviews_count: '0',
       images: [],
     });
     setIsModalOpen(true);
@@ -231,6 +402,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
       is_featured: prod.is_featured,
       is_bestseller: prod.is_bestseller,
       is_hidden: prod.is_hidden,
+      is_customizable: Boolean(prod.is_customizable),
+      rating: prod.rating !== undefined && prod.rating !== null ? String(prod.rating) : '5.0',
+      reviews_count:
+        prod.reviews_count !== undefined && prod.reviews_count !== null
+          ? String(prod.reviews_count)
+          : '0',
       images: Array.isArray(prod.images) && prod.images.length > 0 ? prod.images : prod.image ? [prod.image] : [],
     });
     setIsModalOpen(true);
@@ -246,6 +423,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
       showToast('success', `Produto "${prod.name}" agora está ${newStatus ? 'Oculto' : 'Visível na Loja'}.`);
     } catch (err: any) {
       showToast('error', err.message || 'Erro ao alterar visibilidade.');
+    }
+  };
+
+  // Toggle name customization field availability
+  const handleToggleCustomizable = async (prod: DbProduct) => {
+    try {
+      const newStatus = await toggleProductCustomizable(prod.id, Boolean(prod.is_customizable));
+      setProducts((prev) =>
+        prev.map((p) => (p.id === prod.id ? { ...p, is_customizable: newStatus } : p))
+      );
+      showToast(
+        'success',
+        newStatus
+          ? `"${prod.name}" marcado como Personalizado (campo de nome ativo na loja).`
+          : `"${prod.name}" alterado para Padrão (campo de nome oculto).`
+      );
+    } catch (err: any) {
+      showToast('error', err?.message || 'Erro ao alterar personalização.');
     }
   };
 
@@ -395,10 +590,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
               })
             : JANLEY_COLORS);
 
-      const existingReviews = editingProduct?.reviews_count;
-      const randomReviewsCount = Math.floor(Math.random() * 28) + 5; // 5 a 32 avaliações aleatórias
-      const randomRatings = [4.8, 4.9, 5.0];
-      const randomRating = randomRatings[Math.floor(Math.random() * randomRatings.length)];
+      const rawReviewsInput = Number(formData.reviews_count);
+      const exactReviewsCount =
+        !isNaN(rawReviewsInput) && rawReviewsInput >= 0 ? Math.floor(rawReviewsInput) : 0;
+
+      const rawRatingInput = parseFloat(String(formData.rating || '5.0').replace(',', '.'));
+      const exactRating =
+        !isNaN(rawRatingInput) && rawRatingInput >= 1 && rawRatingInput <= 5
+          ? Number(rawRatingInput.toFixed(1))
+          : 5.0;
 
       const payload = {
         name: formData.name.trim(),
@@ -411,11 +611,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
         is_featured: formData.is_featured,
         is_bestseller: formData.is_bestseller,
         is_hidden: formData.is_hidden,
+        is_customizable: formData.is_customizable,
         images: formData.images,
         image: primaryImage,
         colors: productColors,
-        rating: editingProduct?.rating && editingProduct.rating > 0 ? editingProduct.rating : randomRating,
-        reviews_count: existingReviews && existingReviews > 0 ? existingReviews : randomReviewsCount,
+        rating: exactRating,
+        reviews_count: exactReviewsCount,
       };
 
       if (editingProduct) {
@@ -821,7 +1022,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                   <p className="text-xs text-[#5e433d] mt-1">
                     {cttEnabled
                       ? 'A loja está a aceitar envios nacionais por CTT Expresso, além de Uber Flash e Recolha em Guimarães.'
-                      : 'Os envios por CTT estão pausados. Os clientes veem apenas Uber Flash e Recolha no Atelier.'}
+                      : 'Os envios por CTT estão pausados. Os clientes veem apenas Uber Flash e Recolha na Loja.'}
                   </p>
                 </div>
               </div>
@@ -1056,29 +1257,49 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                               )}
                             </td>
 
-                            {/* Visibility Badge */}
+                            {/* Visibility & Name Customization Badges */}
                             <td className="py-3 px-4">
-                              <button
-                                onClick={() => handleToggleVisibility(prod)}
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer ${
-                                  prod.is_hidden
-                                    ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-                                    : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                                }`}
-                                title={prod.is_hidden ? 'Clica para tornar Visível na Loja' : 'Clica para Ocultar da Loja'}
-                              >
-                                {prod.is_hidden ? (
-                                  <>
-                                    <EyeOff className="w-3 h-3" />
-                                    <span>Oculto</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Eye className="w-3 h-3" />
-                                    <span>Visível</span>
-                                  </>
-                                )}
-                              </button>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <button
+                                  onClick={() => handleToggleVisibility(prod)}
+                                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer ${
+                                    prod.is_hidden
+                                      ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                                      : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                  }`}
+                                  title={prod.is_hidden ? 'Clica para tornar Visível na Loja' : 'Clica para Ocultar da Loja'}
+                                >
+                                  {prod.is_hidden ? (
+                                    <>
+                                      <EyeOff className="w-3 h-3" />
+                                      <span>Oculto</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Eye className="w-3 h-3" />
+                                      <span>Visível</span>
+                                    </>
+                                  )}
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleCustomizable(prod)}
+                                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer ${
+                                    prod.is_customizable
+                                      ? 'bg-[#fef3c7] text-[#b45309] border border-[#fde68a] hover:bg-[#fde68a]/60'
+                                      : 'bg-[#faf4f2] text-[#8c6760] border border-[#f5ded9] hover:bg-[#f3e6e2]'
+                                  }`}
+                                  title={
+                                    prod.is_customizable
+                                      ? 'Campo de nome ativo — clica para desativar'
+                                      : 'Sem campo de nome — clica para permitir personalizar com nome'
+                                  }
+                                >
+                                  <Type className="w-3 h-3" />
+                                  <span>{prod.is_customizable ? 'Com Nome' : 'Sem Nome'}</span>
+                                </button>
+                              </div>
                             </td>
 
                             {/* Actions */}
@@ -1107,6 +1328,217 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            {/* Customer Login History & Email Invitation Panel */}
+            <div className="bg-white rounded-3xl border border-[#fae4e1] shadow-sm p-5 sm:p-6 space-y-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#fef3c7] text-[#d97706] flex items-center justify-center flex-shrink-0">
+                    <UserCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-[#33221e]">
+                      Histórico de Logins, Cadastros &amp; Convites por E-mail ({customerLeads.length})
+                    </h3>
+                    <p className="text-[11px] text-[#735953]">
+                      Regista automaticamente quem cria conta, inicia sessão, subscreve a newsletter ou inicia o checkout para enviares convites personalizados.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={selectedEmailTemplate}
+                    onChange={(e) =>
+                      setSelectedEmailTemplate(
+                        e.target.value as 'welcome10' | 'novidades' | 'guimaraes15' | 'personalizado'
+                      )
+                    }
+                    className="bg-[#faf7f5] border border-[#d8c2bd] rounded-xl px-3 py-1.5 text-xs font-semibold text-[#33221e] outline-hidden"
+                    title="Modelo de e-mail para o botão Convidar"
+                  >
+                    <option value="welcome10">Modelo: Boas-vindas + JANLEY10 (-10%)</option>
+                    <option value="novidades">Modelo: Novidades em Impressão 3D</option>
+                    <option value="guimaraes15">Modelo: Cupão GUIMARAES (-15%)</option>
+                    <option value="personalizado">Modelo: Convite Peça Personalizada</option>
+                  </select>
+
+                  {customerLeads.length > 0 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleCopyAllLeadEmails}
+                        className="inline-flex items-center gap-1.5 bg-[#faf4f2] hover:bg-[#fdedea] border border-[#fae2dc] text-[#33221e] text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+                      >
+                        <Copy className="w-3.5 h-3.5 text-[#d97706]" />
+                        <span>Copiar E-mails</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleExportLeadsCsv}
+                        className="inline-flex items-center gap-1.5 bg-[#faf4f2] hover:bg-[#fdedea] border border-[#fae2dc] text-[#33221e] text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+                      >
+                        <Download className="w-3.5 h-3.5 text-[#d97706]" />
+                        <span>Exportar CSV</span>
+                      </button>
+                    </>
+                  )}
+
+                  {!leadsTableCreated && isSupabaseConfigured && (
+                    <button
+                      type="button"
+                      onClick={handleCopySql}
+                      className="inline-flex items-center gap-1.5 bg-[#fef3c7] hover:bg-[#fde68a] text-[#b45309] text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copiar SQL (Ativar tabela de logins)</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick Info about Automation */}
+              <div className="rounded-2xl bg-[#faf7f5] border border-[#fae4e1] px-4 py-3 text-[11px] text-[#5e433d] leading-relaxed flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span>
+                  <strong>Notificação automática no site:</strong> Clientes com sessão iniciada recebem automaticamente uma notificação com o cupão <strong>JANLEY10</strong> na loja enquanto não finalizam encomenda. Novos registos recebem também o e-mail oficial do Supabase Auth.
+                </span>
+                <div className="flex items-center gap-2 shrink-0 text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                    Pendentes: {customerLeads.filter((l) => l.follow_up_status === 'pendente').length}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                    Convidados: {customerLeads.filter((l) => l.follow_up_status === 'enviado').length}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    Interessados: {customerLeads.filter((l) => l.follow_up_status === 'interessado').length}
+                  </span>
+                </div>
+              </div>
+
+              {customerLeads.length === 0 ? (
+                <div className="text-center py-8 text-xs text-[#735953] bg-[#faf7f5] rounded-2xl border border-[#fae4e1]">
+                  {leadsTableCreated
+                    ? 'Ainda não há registos de login, cadastro ou newsletter. Assim que um visitante entrar ou deixar o e-mail, aparecerá aqui.'
+                    : 'Para sincronizar o histórico de logins entre dispositivos na base de dados, executa o bloco SQL nº 11 (customer_leads) no Supabase.'}
+                </div>
+              ) : (
+                <div className="overflow-x-auto border border-[#fae4e1] rounded-2xl">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#faf5f3] border-b border-[#fae4e1] text-[#6d4f48] uppercase tracking-wider font-bold">
+                      <tr>
+                        <th className="py-3 px-4">Cliente / E-mail</th>
+                        <th className="py-3 px-4">Origem</th>
+                        <th className="py-3 px-4">Acessos</th>
+                        <th className="py-3 px-4">Última Atividade</th>
+                        <th className="py-3 px-4">Estado</th>
+                        <th className="py-3 px-4 text-right">Convidar / Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#fbedea]">
+                      {customerLeads.map((lead) => {
+                        const sourceLabel =
+                          lead.source === 'signup'
+                            ? 'Cadastro'
+                            : lead.source === 'login'
+                              ? 'Login'
+                              : lead.source === 'newsletter'
+                                ? 'Newsletter'
+                                : lead.source === 'checkout'
+                                  ? 'Checkout'
+                                  : lead.source;
+
+                        return (
+                          <tr key={lead.id} className="hover:bg-[#fef9f8] transition-colors">
+                            <td className="py-3 px-4">
+                              <div className="font-bold text-[#33221e]">
+                                {lead.name || lead.email.split('@')[0]}
+                              </div>
+                              <div className="text-[11px] text-[#735953]">{lead.email}</div>
+                            </td>
+
+                            <td className="py-3 px-4">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#faf4f2] text-[#6d4f48] border border-[#f5ded9]">
+                                {sourceLabel}
+                              </span>
+                            </td>
+
+                            <td className="py-3 px-4 font-bold text-[#33221e]">
+                              {lead.login_count || 1}x
+                            </td>
+
+                            <td className="py-3 px-4 text-[11px] text-[#735953]">
+                              <div>{new Date(lead.last_seen_at).toLocaleString('pt-PT')}</div>
+                              {lead.last_contacted_at && (
+                                <div className="text-[10px] text-emerald-700 font-semibold">
+                                  Convidado em {new Date(lead.last_contacted_at).toLocaleDateString('pt-PT')}
+                                </div>
+                              )}
+                            </td>
+
+                            <td className="py-3 px-4">
+                              <select
+                                value={lead.follow_up_status || 'pendente'}
+                                onChange={(e) =>
+                                  handleChangeLeadStatus(
+                                    lead.id,
+                                    e.target.value as 'pendente' | 'enviado' | 'interessado'
+                                  )
+                                }
+                                className={`text-[11px] font-bold px-2.5 py-1 rounded-full border outline-hidden cursor-pointer ${
+                                  lead.follow_up_status === 'interessado'
+                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                    : lead.follow_up_status === 'enviado'
+                                      ? 'bg-blue-50 text-blue-800 border-blue-200'
+                                      : 'bg-amber-50 text-amber-800 border-amber-200'
+                                }`}
+                              >
+                                <option value="pendente">Pendente</option>
+                                <option value="enviado">Convidado</option>
+                                <option value="interessado">Interessado</option>
+                              </select>
+                            </td>
+
+                            <td className="py-3 px-4 text-right">
+                              <div className="inline-flex items-center gap-1.5">
+                                <a
+                                  href={buildMailtoHref(lead, selectedEmailTemplate)}
+                                  onClick={() => {
+                                    void handleMarkInvited(lead);
+                                  }}
+                                  className="inline-flex items-center gap-1 bg-[#d97706] hover:bg-[#b45309] text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors"
+                                  title="Abrir rascunho de e-mail personalizado para este cliente"
+                                >
+                                  <Send className="w-3 h-3" />
+                                  <span>Enviar E-mail</span>
+                                </a>
+
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    try {
+                                      await deleteCustomerLead(lead.id);
+                                      setCustomerLeads((prev) => prev.filter((item) => item.id !== lead.id));
+                                      showToast('success', 'Registo de cliente removido.');
+                                    } catch (err: any) {
+                                      showToast('error', err?.message || 'Erro ao remover registo.');
+                                    }
+                                  }}
+                                  className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer"
+                                  title="Remover registo"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
 
             {/* Customer Suggestions Section in Admin */}
@@ -1178,6 +1610,562 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Post-Purchase Customer Photo Reviews Section */}
+            <div className="bg-white rounded-3xl border border-[#fae4e1] shadow-sm p-5 sm:p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#fef3c7] text-[#d97706] flex items-center justify-center flex-shrink-0">
+                    <Star className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[#33221e]">
+                      Avaliações Pós-Compra de Clientes ({productReviews.length})
+                    </h3>
+                    <p className="text-[11px] text-[#735953]">
+                      Fotos reais, estrelas e comentários enviados após receberem a encomenda.
+                    </p>
+                  </div>
+                </div>
+
+                {!reviewsTableCreated && isSupabaseConfigured && (
+                  <button
+                    type="button"
+                    onClick={handleCopySql}
+                    className="inline-flex items-center gap-1.5 bg-[#fef3c7] hover:bg-[#fde68a] text-[#b45309] text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copiar SQL (Ativar tabela de avaliações)</span>
+                  </button>
+                )}
+              </div>
+
+              {productReviews.length === 0 ? (
+                <div className="text-center py-6 text-xs text-[#735953] bg-[#faf7f5] rounded-2xl border border-[#fae4e1]">
+                  Ainda não existem avaliações pós-compra registadas. Assim que um cliente avaliar na loja com foto e estrelas, aparecerá aqui.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {productReviews.map((rev) => (
+                    <div
+                      key={rev.id}
+                      className="p-3.5 rounded-2xl border border-[#fae4e1] bg-[#faf7f5]/60 flex items-start gap-3 justify-between"
+                    >
+                      <div className="flex items-start gap-3 min-w-0">
+                        {rev.photo_url && (
+                          <img
+                            src={rev.photo_url}
+                            alt={rev.product_name}
+                            className="w-14 h-14 rounded-xl object-cover border border-[#fae4e1] shrink-0"
+                          />
+                        )}
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex items-center gap-1 text-[#f59e0b]">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-3 h-3 ${
+                                  i < rev.rating ? 'fill-[#f59e0b] text-[#f59e0b]' : 'text-[#d8c2bd]'
+                                }`}
+                              />
+                            ))}
+                            <span className="text-[11px] font-bold text-[#33221e] ml-1 truncate">
+                              {rev.product_name}
+                            </span>
+                          </div>
+                          <p className="text-xs text-[#33221e] leading-snug break-words">
+                            "{rev.comment}"
+                          </p>
+                          <div className="text-[10px] text-[#735953]">
+                            <strong>{rev.author_name}</strong>
+                            {rev.order_number ? ` • #${rev.order_number}` : ''} •{' '}
+                            {new Date(rev.created_at).toLocaleDateString('pt-PT')}
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await deleteProductReview(rev.id);
+                          setProductReviews((prev) => prev.filter((item) => item.id !== rev.id));
+                          showToast('success', 'Avaliação removida.');
+                        }}
+                        className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer shrink-0"
+                        title="Remover avaliação"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* Order Tracking & Pickup Address Management (CTT / Uber Flash / Recolha) */}
+            <div className="bg-white rounded-3xl border border-[#fae4e1] shadow-sm p-5 sm:p-6 space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#fef3c7] text-[#d97706] flex items-center justify-center flex-shrink-0">
+                    <Truck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-[#33221e]">
+                      Encomendas &amp; Rastreio (CTT / Uber Flash / Recolha) ({trackedOrders.length})
+                    </h3>
+                    <p className="text-[11px] text-[#735953]">
+                      Define o código CTT, dá o OK + valor do Uber Flash ou avisa quando terminar impressão/acabamento/embalagem para recolha.
+                    </p>
+                  </div>
+                </div>
+
+                {!ordersTableCreated && isSupabaseConfigured && (
+                  <button
+                    type="button"
+                    onClick={handleCopySql}
+                    className="inline-flex items-center gap-1.5 bg-[#fef3c7] hover:bg-[#fde68a] text-[#b45309] text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copiar SQL (Ativar tabela de encomendas)</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Global Pickup Address Config */}
+              <div className="p-4 rounded-2xl bg-[#fef8ed] border border-[#fed7aa] space-y-3">
+                <div className="text-xs font-bold text-[#3d2314]">
+                  Morada Padrão para Recolha na Loja (aparece quando o cliente escolhe Recolha)
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#5c3a1e] mb-1">
+                      Morada Completa da Loja
+                    </label>
+                    <input
+                      type="text"
+                      value={pickupAddress}
+                      onChange={(e) => setPickupAddress(e.target.value)}
+                      placeholder="Ex: Rua ..., N.º ..., Guimarães, Braga"
+                      className="w-full bg-white border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3 py-2 text-xs outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#5c3a1e] mb-1">
+                      Nota / Horário de Recolha
+                    </label>
+                    <input
+                      type="text"
+                      value={pickupNote}
+                      onChange={(e) => setPickupNote(e.target.value)}
+                      placeholder="Ex: Seg a Sáb das 10h às 19h (combinar antes)"
+                      className="w-full bg-white border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3 py-2 text-xs outline-hidden"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    disabled={savingPickup}
+                    onClick={async () => {
+                      setSavingPickup(true);
+                      try {
+                        await saveStorePickupSettings({ address: pickupAddress, note: pickupNote });
+                        showToast('success', 'Morada de recolha guardada com sucesso!');
+                      } finally {
+                        setSavingPickup(false);
+                      }
+                    }}
+                    className="bg-[#d97706] hover:bg-[#b45309] text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {savingPickup ? 'A guardar...' : 'Guardar Morada de Recolha'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Create / Update Order Form */}
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!orderForm.order_number.trim()) {
+                    showToast('error', 'Insere o número da encomenda (ex: JNLY-123456).');
+                    return;
+                  }
+                  setSavingOrder(true);
+                  try {
+                    const saved = await upsertTrackedOrder({
+                      ...orderForm,
+                      pickup_address:
+                        orderForm.delivery_method === 'recolha'
+                          ? orderForm.pickup_address.trim() || pickupAddress
+                          : '',
+                    });
+                    setTrackedOrders((prev) => [
+                      saved,
+                      ...prev.filter(
+                        (o) => o.order_number.toUpperCase() !== saved.order_number.toUpperCase()
+                      ),
+                    ]);
+                    showToast('success', `Estado da encomenda #${saved.order_number} atualizado!`);
+                  } finally {
+                    setSavingOrder(false);
+                  }
+                }}
+                className="p-4 rounded-2xl bg-[#faf7f5] border border-[#fae4e1] space-y-3"
+              >
+                <div className="text-xs font-bold text-[#33221e]">
+                  Atualizar ou Registar Encomenda no Rastreador
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#5e433d] mb-1">
+                      N.º Encomenda *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={orderForm.order_number}
+                      onChange={(e) =>
+                        setOrderForm({ ...orderForm, order_number: e.target.value.toUpperCase() })
+                      }
+                      placeholder="Ex: JNLY-849100"
+                      className="w-full bg-white border border-[#d8c2bd] rounded-xl px-3 py-2 text-xs font-mono uppercase outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#5e433d] mb-1">
+                      Cliente
+                    </label>
+                    <input
+                      type="text"
+                      value={orderForm.client_name}
+                      onChange={(e) => setOrderForm({ ...orderForm, client_name: e.target.value })}
+                      placeholder="Ex: Ana Silva"
+                      className="w-full bg-white border border-[#d8c2bd] rounded-xl px-3 py-2 text-xs outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#5e433d] mb-1">
+                      Peça / Produto
+                    </label>
+                    <input
+                      type="text"
+                      value={orderForm.product_name}
+                      onChange={(e) => setOrderForm({ ...orderForm, product_name: e.target.value })}
+                      placeholder="Ex: Chaveiro Personalizado"
+                      className="w-full bg-white border border-[#d8c2bd] rounded-xl px-3 py-2 text-xs outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#5e433d] mb-1">
+                      Modalidade *
+                    </label>
+                    <select
+                      value={orderForm.delivery_method}
+                      onChange={(e) => {
+                        const nextMethod = e.target.value as DeliveryMethodType;
+                        setOrderForm({
+                          ...orderForm,
+                          delivery_method: nextMethod,
+                          stage: nextMethod === 'recolha' ? 'Printing' : 'Queued',
+                        });
+                      }}
+                      className="w-full bg-white border border-[#d8c2bd] rounded-xl px-3 py-2 text-xs font-bold outline-hidden"
+                    >
+                      <option value="ctt">CTT Expresso</option>
+                      <option value="uber">Uber Flash</option>
+                      <option value="recolha">Recolha na Loja</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Mode-specific controls */}
+                {orderForm.delivery_method === 'ctt' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#5e433d] mb-1">
+                        Etapa CTT
+                      </label>
+                      <select
+                        value={orderForm.stage}
+                        onChange={(e) =>
+                          setOrderForm({ ...orderForm, stage: e.target.value as OrderStage })
+                        }
+                        className="w-full bg-white border border-[#d8c2bd] rounded-xl px-3 py-2 text-xs outline-hidden"
+                      >
+                        <option value="Queued">1. Na Fila</option>
+                        <option value="Printing">2. A Imprimir 3D</option>
+                        <option value="Packaging">3. Acabamento &amp; Embalagem</option>
+                        <option value="Shipped">4. Enviado CTT</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#5e433d] mb-1">
+                        Código de Rastreio CTT
+                      </label>
+                      <input
+                        type="text"
+                        value={orderForm.tracking_code}
+                        onChange={(e) =>
+                          setOrderForm({ ...orderForm, tracking_code: e.target.value.toUpperCase() })
+                        }
+                        placeholder="Ex: PT9482019482"
+                        className="w-full bg-white border border-[#d8c2bd] rounded-xl px-3 py-2 text-xs font-mono outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#5e433d] mb-1">
+                        Localidade / Destino
+                      </label>
+                      <input
+                        type="text"
+                        value={orderForm.destination}
+                        onChange={(e) =>
+                          setOrderForm({ ...orderForm, destination: e.target.value })
+                        }
+                        placeholder="Ex: Porto, Portugal"
+                        className="w-full bg-white border border-[#d8c2bd] rounded-xl px-3 py-2 text-xs outline-hidden"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {orderForm.delivery_method === 'uber' && (
+                  <div className="space-y-2.5 pt-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#5e433d] mb-1">
+                          Etapa Uber Flash
+                        </label>
+                        <select
+                          value={orderForm.stage}
+                          onChange={(e) =>
+                            setOrderForm({ ...orderForm, stage: e.target.value as OrderStage })
+                          }
+                          className="w-full bg-white border border-[#d8c2bd] rounded-xl px-3 py-2 text-xs outline-hidden"
+                        >
+                          <option value="Queued">1. Na Fila</option>
+                          <option value="Printing">2. A Imprimir 3D</option>
+                          <option value="Post-processing">3. Pronto / Aguardar Uber</option>
+                          <option value="Shipped">4. Saiu por Uber Flash</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#5e433d] mb-1">
+                          Quanto custará (Valor Uber)
+                        </label>
+                        <input
+                          type="text"
+                          value={orderForm.uber_fee}
+                          onChange={(e) => setOrderForm({ ...orderForm, uber_fee: e.target.value })}
+                          placeholder="Ex: € 4,50"
+                          className="w-full bg-white border border-[#d8c2bd] rounded-xl px-3 py-2 text-xs outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#5e433d] mb-1">
+                          Nota para o Cliente
+                        </label>
+                        <input
+                          type="text"
+                          value={orderForm.uber_note}
+                          onChange={(e) =>
+                            setOrderForm({ ...orderForm, uber_note: e.target.value })
+                          }
+                          placeholder="Ex: Estafeta a caminho, chega em 15min"
+                          className="w-full bg-white border border-[#d8c2bd] rounded-xl px-3 py-2 text-xs outline-hidden"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-5 text-xs">
+                      <label className="flex items-center gap-2 font-semibold text-[#33221e] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={orderForm.uber_ok}
+                          onChange={(e) =>
+                            setOrderForm({ ...orderForm, uber_ok: e.target.checked })
+                          }
+                          className="w-4 h-4 accent-[#d97706]"
+                        />
+                        <span>Dar OK no site (envio aprovado &amp; valor confirmado)</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 font-semibold text-[#33221e] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={orderForm.uber_dispatched}
+                          onChange={(e) =>
+                            setOrderForm({
+                              ...orderForm,
+                              uber_dispatched: e.target.checked,
+                              stage: e.target.checked ? 'Shipped' : orderForm.stage,
+                            })
+                          }
+                          className="w-4 h-4 accent-[#d97706]"
+                        />
+                        <span>Já saiu para entrega (Uber a caminho)</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {orderForm.delivery_method === 'recolha' && (
+                  <div className="space-y-2.5 pt-1">
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#5e433d] mb-1">
+                        Avisar Estado da Recolha
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { id: 'Printing' as OrderStage, label: 'A Imprimir 3D' },
+                          { id: 'Post-processing' as OrderStage, label: 'Terminou → Acabamento' },
+                          { id: 'Packaging' as OrderStage, label: 'Embalagem' },
+                          { id: 'ReadyPickup' as OrderStage, label: 'Já Pode Buscar!' },
+                        ].map((st) => (
+                          <button
+                            key={st.id}
+                            type="button"
+                            onClick={() => setOrderForm({ ...orderForm, stage: st.id })}
+                            className={`px-3 py-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
+                              orderForm.stage === st.id
+                                ? 'bg-[#d97706] text-white border-[#d97706]'
+                                : 'bg-white text-[#4a342f] border-[#d8c2bd] hover:border-[#d97706]'
+                            }`}
+                          >
+                            {st.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#5e433d] mb-1">
+                          Morada de Recolha (se vazia usa a morada padrão acima)
+                        </label>
+                        <input
+                          type="text"
+                          value={orderForm.pickup_address}
+                          onChange={(e) =>
+                            setOrderForm({ ...orderForm, pickup_address: e.target.value })
+                          }
+                          placeholder={pickupAddress || 'Morada para o cliente vir buscar'}
+                          className="w-full bg-white border border-[#d8c2bd] rounded-xl px-3 py-2 text-xs outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#5e433d] mb-1">
+                          Aviso Extra ao Cliente (Opcional)
+                        </label>
+                        <input
+                          type="text"
+                          value={orderForm.pickup_note}
+                          onChange={(e) =>
+                            setOrderForm({ ...orderForm, pickup_note: e.target.value })
+                          }
+                          placeholder="Ex: Podes passar hoje a partir das 16h"
+                          className="w-full bg-white border border-[#d8c2bd] rounded-xl px-3 py-2 text-xs outline-hidden"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={savingOrder}
+                    className="bg-[#33221e] hover:bg-[#d97706] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {savingOrder ? 'A guardar...' : 'Guardar / Atualizar Encomenda'}
+                  </button>
+                </div>
+              </form>
+
+              {/* Saved Tracked Orders List */}
+              {trackedOrders.length > 0 && (
+                <div className="divide-y divide-[#fbedea] border border-[#fae4e1] rounded-2xl overflow-hidden">
+                  {trackedOrders.map((ord) => (
+                    <div
+                      key={ord.order_number}
+                      className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:bg-[#fef9f8]"
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <strong className="font-mono text-[#33221e]">{ord.order_number}</strong>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#faf4f2] border border-[#f5ded9] uppercase">
+                            {ord.delivery_method === 'ctt'
+                              ? 'CTT'
+                              : ord.delivery_method === 'uber'
+                                ? 'Uber Flash'
+                                : 'Recolha'}
+                          </span>
+                          <span className="text-[#735953]">• {ord.client_name || 'Cliente'}</span>
+                        </div>
+                        <div className="text-[11px] text-[#5c3a1e]">
+                          Etapa: <strong>{ord.stage}</strong>
+                          {ord.delivery_method === 'ctt' && ord.tracking_code
+                            ? ` • Rastreio: ${ord.tracking_code}`
+                            : ''}
+                          {ord.delivery_method === 'uber'
+                            ? ` • Valor: ${ord.uber_fee || 'Pendente'} • ${
+                                ord.uber_dispatched
+                                  ? 'Saiu p/ entrega'
+                                  : ord.uber_ok
+                                    ? 'OK dado'
+                                    : 'Aguardar OK'
+                              }`
+                            : ''}
+                          {ord.delivery_method === 'recolha' && (ord.pickup_address || pickupAddress)
+                            ? ` • Morada: ${ord.pickup_address || pickupAddress}`
+                            : ''}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setOrderForm({
+                              order_number: ord.order_number,
+                              delivery_method: ord.delivery_method,
+                              client_name: ord.client_name || '',
+                              destination: ord.destination || '',
+                              product_name: ord.product_name || '',
+                              stage: ord.stage,
+                              tracking_code: ord.tracking_code || '',
+                              uber_fee: ord.uber_fee || '',
+                              uber_ok: Boolean(ord.uber_ok),
+                              uber_dispatched: Boolean(ord.uber_dispatched),
+                              uber_note: ord.uber_note || '',
+                              pickup_address: ord.pickup_address || '',
+                              pickup_note: ord.pickup_note || '',
+                            })
+                          }
+                          className="px-3 py-1.5 rounded-lg bg-[#faf4f2] hover:bg-[#fef3c7] text-[#33221e] text-[11px] font-bold cursor-pointer"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await deleteTrackedOrder(ord.order_number);
+                            setTrackedOrders((prev) =>
+                              prev.filter((item) => item.order_number !== ord.order_number)
+                            );
+                            showToast('success', `Encomenda #${ord.order_number} removida.`);
+                          }}
+                          className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 cursor-pointer"
+                          title="Remover encomenda"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1284,12 +2272,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                   <div className="sm:col-span-2">
                     <label className="block text-xs font-bold text-[#33221e] mb-1">Descrição do Produto</label>
                     <textarea
-                      rows={3}
+                      rows={5}
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Descreve o design, acabamento e utilidade da peça..."
-                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl p-3 text-sm outline-hidden"
+                      placeholder="Descreve o design, acabamento e utilidade da peça...&#10;&#10;Podes dar Enter para separar parágrafos."
+                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl p-3 text-sm outline-hidden whitespace-pre-wrap"
                     />
+                    <p className="text-[10px] text-[#735953] mt-1">
+                      Os espaços e parágrafos (Enter) serão respeitados exatamente como escreveres na loja pública.
+                    </p>
                   </div>
 
                   {/* Dimensions */}
@@ -1313,6 +2304,42 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                       onChange={(e) => setFormData({ ...formData, material: e.target.value })}
                       placeholder="Ex: PLA Ecológico Biodegradável"
                       className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2 text-sm outline-hidden"
+                    />
+                  </div>
+
+                  {/* Exact Reviews Count */}
+                  <div>
+                    <label className="block text-xs font-bold text-[#33221e] mb-1">
+                      Quantidade de Avaliações
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      step={1}
+                      value={formData.reviews_count}
+                      onChange={(e) => setFormData({ ...formData, reviews_count: e.target.value })}
+                      placeholder="0"
+                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2 text-sm outline-hidden font-semibold"
+                    />
+                    <p className="text-[10px] text-[#735953] mt-1">
+                      Define o número exato de avaliações exibido (deixa 0 se ainda não tiver).
+                    </p>
+                  </div>
+
+                  {/* Star Rating */}
+                  <div>
+                    <label className="block text-xs font-bold text-[#33221e] mb-1">
+                      Nota Média (1 a 5 estrelas)
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={5}
+                      step={0.1}
+                      value={formData.rating}
+                      onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                      placeholder="5.0"
+                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2 text-sm outline-hidden font-semibold"
                     />
                   </div>
                 </div>
@@ -1353,27 +2380,46 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                   </div>
                 </div>
 
-                {/* Visibility and Featured checkboxes */}
-                <div className="flex flex-wrap items-center gap-6 pt-2 border-t border-[#fae2dc] text-xs">
-                  <label className="flex items-center gap-2 font-semibold text-[#33221e] cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.is_hidden}
-                      onChange={(e) => setFormData({ ...formData, is_hidden: e.target.checked })}
-                      className="w-4 h-4 accent-[#d97706]"
-                    />
-                    <span>Ocultar produto da loja pública</span>
-                  </label>
+                {/* Visibility, Featured & Name Personalization checkboxes */}
+                <div className="space-y-3 pt-2 border-t border-[#fae2dc] text-xs">
+                  <div className="p-3 rounded-xl bg-[#fef8ed] border border-[#fed7aa]">
+                    <label className="flex items-start gap-2.5 font-bold text-[#3d2314] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.is_customizable}
+                        onChange={(e) => setFormData({ ...formData, is_customizable: e.target.checked })}
+                        className="w-4 h-4 accent-[#d97706] mt-0.5 shrink-0"
+                      />
+                      <div>
+                        <span>Personalizável com Nome / Texto (aba para o cliente escrever o nome)</span>
+                        <p className="text-[11px] font-normal text-[#78350f] mt-0.5">
+                          Ativa apenas nos produtos em que realmente é possível acrescentar nome ou iniciais.
+                        </p>
+                      </div>
+                    </label>
+                  </div>
 
-                  <label className="flex items-center gap-2 font-semibold text-[#33221e] cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.is_featured}
-                      onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                      className="w-4 h-4 accent-[#d97706]"
-                    />
-                    <span>Destacar na Página Inicial</span>
-                  </label>
+                  <div className="flex flex-wrap items-center gap-6">
+                    <label className="flex items-center gap-2 font-semibold text-[#33221e] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.is_hidden}
+                        onChange={(e) => setFormData({ ...formData, is_hidden: e.target.checked })}
+                        className="w-4 h-4 accent-[#d97706]"
+                      />
+                      <span>Ocultar produto da loja pública</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 font-semibold text-[#33221e] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.is_featured}
+                        onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                        className="w-4 h-4 accent-[#d97706]"
+                      />
+                      <span>Destacar na Página Inicial</span>
+                    </label>
+                  </div>
                 </div>
 
                 {/* Submit button */}

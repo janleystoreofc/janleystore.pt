@@ -12,11 +12,19 @@ import {
   ArrowRight,
   Trash2,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Star,
+  Camera
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { Product } from '../types';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import {
+  supabase,
+  isSupabaseConfigured,
+  recordCustomerLeadEvent,
+  submitProductReview,
+  compressReviewPhoto,
+} from '../lib/supabase';
 
 interface CustomerProfileModalProps {
   isOpen: boolean;
@@ -36,7 +44,15 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
   defaultTab = 'favoritos',
 }) => {
   const { favorites, toggleFavorite, addToCart } = useCart();
-  const [activeTab, setActiveTab] = useState<'favoritos' | 'conta' | 'encomendas'>(defaultTab);
+  const [activeTab, setActiveTab] = useState<'favoritos' | 'conta' | 'avaliar' | 'encomendas'>(defaultTab);
+
+  // Post-purchase review form state
+  const [reviewProductId, setReviewProductId] = useState(() => products[0]?.id || '');
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewOrderNum, setReviewOrderNum] = useState('');
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewPhoto, setReviewPhoto] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
   // Auth state for customer
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -61,37 +77,64 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
     setMessage(null);
 
     try {
+      let resolvedEmail = email.trim();
+      let resolvedName = clientName.trim();
+
       if (isSupabaseConfigured) {
         if (isLoginMode) {
           const { data, error } = await supabase.auth.signInWithPassword({
-            email: email.trim(),
+            email: resolvedEmail,
             password,
           });
           if (error) throw error;
-          setLoggedInEmail(data.user?.email || email.trim());
-          localStorage.setItem('janley_client_email', data.user?.email || email.trim());
+          resolvedEmail = data.user?.email || resolvedEmail;
+          resolvedName = resolvedName || (data.user?.user_metadata?.name as string) || '';
+          setLoggedInEmail(resolvedEmail);
+          localStorage.setItem('janley_client_email', resolvedEmail);
+          if (resolvedName) {
+            setClientName(resolvedName);
+            localStorage.setItem('janley_client_name', resolvedName);
+          }
         } else {
           const { data, error } = await supabase.auth.signUp({
-            email: email.trim(),
+            email: resolvedEmail,
             password,
             options: {
-              data: { name: clientName.trim() },
+              data: { name: resolvedName },
             },
           });
           if (error) throw error;
-          setLoggedInEmail(data.user?.email || email.trim());
-          localStorage.setItem('janley_client_email', data.user?.email || email.trim());
+          resolvedEmail = data.user?.email || resolvedEmail;
+          setLoggedInEmail(resolvedEmail);
+          localStorage.setItem('janley_client_email', resolvedEmail);
+          if (resolvedName) {
+            localStorage.setItem('janley_client_name', resolvedName);
+          }
         }
       } else {
         // Local client login
-        setLoggedInEmail(email.trim());
-        localStorage.setItem('janley_client_email', email.trim());
-        if (clientName.trim()) {
-          localStorage.setItem('janley_client_name', clientName.trim());
+        setLoggedInEmail(resolvedEmail);
+        localStorage.setItem('janley_client_email', resolvedEmail);
+        if (resolvedName) {
+          localStorage.setItem('janley_client_name', resolvedName);
         }
       }
 
-      setMessage({ type: 'success', text: isLoginMode ? 'Sessão iniciada com sucesso!' : 'Conta criada com sucesso!' });
+      await recordCustomerLeadEvent({
+        email: resolvedEmail,
+        name: resolvedName,
+        source: isLoginMode ? 'login' : 'signup',
+      });
+      window.dispatchEvent(new CustomEvent('janley:customer-auth'));
+
+      setMessage({
+        type: 'success',
+        text: isLoginMode
+          ? 'Sessão iniciada com sucesso!'
+          : isSupabaseConfigured
+            ? 'Conta criada! Enviámos um e-mail de boas-vindas/confirmação para a tua caixa de entrada.'
+            : 'Conta criada com sucesso!',
+      });
       setEmail('');
       setPassword('');
     } catch (err: any) {
@@ -107,6 +150,7 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
     }
     setLoggedInEmail('');
     localStorage.removeItem('janley_client_email');
+    window.dispatchEvent(new CustomEvent('janley:customer-auth'));
     setMessage({ type: 'success', text: 'Sessão terminada.' });
   };
 
@@ -162,6 +206,18 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
             >
               <User className="w-3.5 h-3.5" />
               <span>{loggedInEmail ? 'Perfil / Conta' : 'Iniciar Sessão'}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('avaliar')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'avaliar'
+                  ? 'bg-[#d97706] text-white shadow-2xs'
+                  : 'bg-[#faf4f2] text-[#6d4f48] hover:bg-[#fdedea]'
+              }`}
+            >
+              <Star className="w-3.5 h-3.5" />
+              <span>Avaliar Compra</span>
             </button>
 
             <button
@@ -246,14 +302,16 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                         </h4>
                         <div className="text-[11px] text-[#735953] truncate">{prod.category}</div>
                         <div className="text-xs font-bold text-[#33221e] mt-1">
-                          {prod.price > 0 ? `€ ${prod.price.toFixed(2).replace('.', ',')}` : 'Sob consulta'}
+                          {prod.price > 0
+                            ? `€ ${prod.price.toFixed(2).replace('.', ',')}${prod.price < 5 ? ' · Packs desde 3 un' : ''}`
+                            : 'Sob consulta'}
                         </div>
                       </div>
 
                       <div className="flex flex-col gap-1.5">
                         <button
                           onClick={() => {
-                            if (prod.price > 0) {
+                            if (prod.price >= 5) {
                               addToCart(prod, prod.colors[0], 1);
                             } else {
                               onClose();
@@ -261,7 +319,13 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                             }
                           }}
                           className="p-2 bg-[#d97706] hover:bg-[#e11d48] text-white rounded-lg shadow-2xs transition-all cursor-pointer"
-                          title={prod.price > 0 ? 'Adicionar ao Carrinho' : 'Consultar Preço'}
+                          title={
+                            prod.price >= 5
+                              ? 'Adicionar ao Carrinho'
+                              : prod.price > 0
+                                ? 'Escolher Pack'
+                                : 'Consultar Preço'
+                          }
                         >
                           <ShoppingBag className="w-3.5 h-3.5" />
                         </button>
@@ -371,6 +435,169 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                 </form>
               )}
             </div>
+          )}
+
+          {/* TAB 3: AVALIAÇÃO PÓS-COMPRA (MINIMALISTA) */}
+          {activeTab === 'avaliar' && (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const targetProduct =
+                  products.find((p) => p.id === reviewProductId) || products[0];
+                if (!targetProduct || !reviewComment.trim()) return;
+                setReviewSubmitting(true);
+                setMessage(null);
+                try {
+                  await submitProductReview({
+                    product_id: targetProduct.id,
+                    product_name: targetProduct.name,
+                    author_name:
+                      clientName.trim() ||
+                      (loggedInEmail ? loggedInEmail.split('@')[0] : 'Cliente Verificado'),
+                    order_number: reviewOrderNum.trim(),
+                    rating: reviewRating,
+                    comment: reviewComment.trim(),
+                    photo_url: reviewPhoto,
+                  });
+                  setReviewComment('');
+                  setReviewOrderNum('');
+                  setReviewPhoto('');
+                  setReviewRating(5);
+                  setMessage({
+                    type: 'success',
+                    text: 'Avaliação pós-compra publicada com sucesso! Obrigado pela tua foto e feedback.',
+                  });
+                } catch (err: any) {
+                  setMessage({
+                    type: 'error',
+                    text: err?.message || 'Erro ao enviar avaliação.',
+                  });
+                } finally {
+                  setReviewSubmitting(false);
+                }
+              }}
+              className="space-y-4 p-4 sm:p-5 bg-[#faf7f5] rounded-2xl border border-[#fae2dc]"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-[#33221e]">
+                    Avaliação Pós-Compra
+                  </h3>
+                  <p className="text-[11px] text-[#735953]">
+                    Já recebeste a tua encomenda? Envia uma foto real, estrelas e comentário.
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewRating(star)}
+                      className="p-0.5 cursor-pointer transition-transform hover:scale-110"
+                      aria-label={`${star} estrelas`}
+                    >
+                      <Star
+                        className={`w-5 h-5 ${
+                          star <= reviewRating
+                            ? 'fill-[#f59e0b] text-[#f59e0b]'
+                            : 'text-[#d8c2bd]'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#33221e] mb-1">
+                    Produto Recebido
+                  </label>
+                  <select
+                    value={reviewProductId || products[0]?.id || ''}
+                    onChange={(e) => setReviewProductId(e.target.value)}
+                    className="w-full bg-white border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3 py-2 text-xs outline-hidden text-[#33221e]"
+                  >
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#33221e] mb-1">
+                    N.º Encomenda (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    value={reviewOrderNum}
+                    onChange={(e) => setReviewOrderNum(e.target.value)}
+                    placeholder="Ex: JNLY-123456"
+                    className="w-full bg-white border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3 py-2 text-xs outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-[#33221e] mb-1">
+                  O teu Comentário *
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Conta-nos o que achaste do acabamento, cor e entrega..."
+                  className="w-full bg-white border border-[#d8c2bd] focus:border-[#d97706] rounded-xl p-3 text-xs outline-hidden resize-none"
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#d8c2bd] hover:border-[#d97706] text-xs font-semibold text-[#5c3a1e] cursor-pointer transition-colors">
+                    <Camera className="w-4 h-4 text-[#d97706]" />
+                    <span>{reviewPhoto ? 'Trocar foto real' : 'Enviar foto do produto'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const compressed = await compressReviewPhoto(file);
+                          setReviewPhoto(compressed);
+                        } catch {
+                          // ignore invalid image
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                  {reviewPhoto && (
+                    <div className="relative w-11 h-11 rounded-xl overflow-hidden border border-[#fed7aa]">
+                      <img src={reviewPhoto} alt="Produto recebido" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setReviewPhoto('')}
+                        className="absolute inset-0 bg-black/45 text-white flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={reviewSubmitting}
+                  className="bg-[#33221e] hover:bg-[#d97706] text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {reviewSubmitting ? 'A publicar...' : 'Enviar Avaliação'}
+                </button>
+              </div>
+            </form>
           )}
         </div>
       </div>

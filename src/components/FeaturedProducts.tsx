@@ -101,11 +101,18 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                     {product.name}
                   </h3>
 
-                  {/* Rating Stars + Count */}
+                  {/* Rating Stars + Exact Count */}
                   <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
                     <div className="flex items-center text-[#f59e0b]">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-[#f59e0b] text-[#f59e0b]" />
+                        <Star
+                          key={i}
+                          className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 ${
+                            product.reviewsCount > 0
+                              ? 'fill-[#f59e0b] text-[#f59e0b]'
+                              : 'text-[#d8c2bd]'
+                          }`}
+                        />
                       ))}
                     </div>
                     <span className="text-[10px] sm:text-xs text-[#7d5e4f] font-medium">
@@ -116,7 +123,14 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                   {/* Price or Sob consulta */}
                   <div className="text-xs sm:text-base md:text-lg font-bold text-[#2b170c] mt-0.5 sm:mt-1">
                     {product.price > 0 ? (
-                      `€ ${product.price.toFixed(2).replace('.', ',')}`
+                      <>
+                        <span>€ {product.price.toFixed(2).replace('.', ',')}</span>
+                        {product.price < 5 && (
+                          <span className="block text-[10px] sm:text-[11px] font-medium text-[#7d5e4f]">
+                            Packs desde 3 un
+                          </span>
+                        )}
+                      </>
                     ) : (
                       <span className="text-xs sm:text-sm font-semibold text-[#b45309]">
                         {t('sob_consulta')}

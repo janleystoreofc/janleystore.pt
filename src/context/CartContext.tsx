@@ -1,5 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { CartItem, Product, ProductColor } from '../types';
+import {
+  calculateProductPricing,
+  isUnder5PackProduct,
+  UNDER_5_PACK_QUANTITIES,
+} from '../data/products';
 
 interface CartContextType {
   items: CartItem[];
@@ -75,6 +80,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addToCart = (product: Product, color?: ProductColor, quantity = 1, customText?: string) => {
     const selectedColor = color || product.colors[0];
+    const safeQuantity =
+      isUnder5PackProduct(product) && quantity < 3 ? 3 : Math.max(1, Math.floor(quantity));
     const cartItemId = `${product.id}-${selectedColor.name}${customText ? `-${customText}` : ''}`;
 
     setItems((prev) => {
@@ -83,7 +90,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const next = [...prev];
         next[existingIndex] = {
           ...next[existingIndex],
-          quantity: next[existingIndex].quantity + quantity,
+          quantity: next[existingIndex].quantity + safeQuantity,
         };
         return next;
       } else {
@@ -91,7 +98,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: cartItemId,
           product,
           selectedColor,
-          quantity,
+          quantity: safeQuantity,
           customText,
         };
         setLastAddedItem(newItem);
@@ -112,6 +119,25 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       prev
         .map((item) => {
           if (item.id === cartItemId) {
+            if (isUnder5PackProduct(item.product)) {
+              const packs = UNDER_5_PACK_QUANTITIES as readonly number[];
+              if (item.quantity > 50) {
+                const nextQty = item.quantity + delta;
+                return nextQty >= 50 ? { ...item, quantity: nextQty } : { ...item, quantity: 50 };
+              }
+              const currentIdx = packs.indexOf(item.quantity);
+              if (currentIdx !== -1) {
+                const nextIdx = currentIdx + (delta > 0 ? 1 : -1);
+                if (nextIdx < 0) return null;
+                if (nextIdx >= packs.length) return { ...item, quantity: 51 };
+                return { ...item, quantity: packs[nextIdx] };
+              }
+              // Non-standard quantity <= 50 fallback: snap to nearest pack step
+              const fallbackQty = delta > 0
+                ? (packs.find((p) => p > item.quantity) ?? 51)
+                : ([...packs].reverse().find((p) => p < item.quantity) ?? null);
+              return fallbackQty ? { ...item, quantity: fallbackQty } : null;
+            }
             const newQty = item.quantity + delta;
             return newQty > 0 ? { ...item, quantity: newQty } : null;
           }
@@ -161,7 +187,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearNotification = () => setNotification(null);
 
   const totalItemsCount = items.reduce((acc, item) => acc + item.quantity, 0);
-  const subtotal = items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  const subtotal = items.reduce(
+    (acc, item) => acc + calculateProductPricing(item.product, item.quantity).lineTotal,
+    0
+  );
   const discount = subtotal * appliedDiscountRate;
   const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD || items.length === 0;
   const shipping = isFreeShipping ? 0 : STANDARD_SHIPPING_COST;

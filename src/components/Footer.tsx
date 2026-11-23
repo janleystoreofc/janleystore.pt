@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Instagram, Send, CheckCircle2, Share2 } from 'lucide-react';
+import { Instagram, Send, CheckCircle2, Share2, ShieldAlert } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
+import { recordCustomerLeadEvent } from '../lib/supabase';
 
 interface FooterProps {
   onSelectCategory: (categoryId: string) => void;
@@ -57,7 +58,12 @@ export const Footer: React.FC<FooterProps> = ({
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim() && email.includes('@')) {
+    const cleanEmail = email.trim();
+    if (cleanEmail && cleanEmail.includes('@')) {
+      void recordCustomerLeadEvent({
+        email: cleanEmail,
+        source: 'newsletter',
+      });
       setSubscribed(true);
       setTimeout(() => {
         setEmail('');
@@ -290,19 +296,27 @@ export const Footer: React.FC<FooterProps> = ({
         </div>
 
         {/* Compact Footer Bottom Bar */}
-        <div className="pt-6 flex items-center justify-center sm:justify-start text-xs text-[#78350f]">
-          {/* Compact location and delivery one-liner */}
-          <div className="text-center sm:text-left font-medium flex items-center gap-2">
-            <span>{cttEnabled ? t('footer_delivery_bottom') : t('footer_delivery_bottom_no_ctt')}</span>
-            {onOpenAdmin && (
-              <button
-                onClick={onOpenAdmin}
-                className="hidden sm:inline-block text-[11px] text-[#b45309] hover:underline cursor-pointer opacity-70 hover:opacity-100"
-                title="Área de Administração"
-              >
-                {t('footer_admin_link')}
-              </button>
-            )}
+        <div className="pt-6 space-y-4">
+          <div className="flex items-center justify-center sm:justify-start text-xs text-[#78350f]">
+            {/* Compact location and delivery one-liner */}
+            <div className="text-center sm:text-left font-medium flex items-center gap-2">
+              <span>{cttEnabled ? t('footer_delivery_bottom') : t('footer_delivery_bottom_no_ctt')}</span>
+              {onOpenAdmin && (
+                <button
+                  onClick={onOpenAdmin}
+                  className="hidden sm:inline-block text-[11px] text-[#b45309] hover:underline cursor-pointer opacity-70 hover:opacity-100"
+                  title="Área de Administração"
+                >
+                  {t('footer_admin_link')}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Image Privacy & Anti-Cloning Legal Notice */}
+          <div className="rounded-xl bg-[#faf6f3] border border-[#ead8cf] px-4 py-3 flex items-start sm:items-center gap-2.5 text-[11px] sm:text-xs text-[#5c3a1e] leading-relaxed">
+            <ShieldAlert className="w-4 h-4 text-[#b45309] shrink-0 mt-0.5 sm:mt-0" />
+            <p>{t('footer_privacy_notice')}</p>
           </div>
         </div>
       </div>

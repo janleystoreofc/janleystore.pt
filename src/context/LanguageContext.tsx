@@ -54,7 +54,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     feature_payment_sub: 'Aceitamos apenas MB WAY',
 
     // Categories Section
-    categories_badge: 'Atelier 3D Guimarães',
+    categories_badge: 'Loja 3D Guimarães',
     categories_title: 'Comprar por Categoria',
     cat_natal: 'Natal',
     cat_chaveiros: 'Chaveiros',
@@ -80,7 +80,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     consultar_preco: 'CONSULTAR PREÇO',
 
     // Direct Budget Section
-    quote_badge: 'Atelier de Fabrico Aditivo 3D',
+    quote_badge: 'Loja de Fabrico Aditivo 3D',
     quote_title: 'Pedir Orçamento Personalizado',
     quote_step1: '1. Categoria da Peça',
     quote_step2: '2. Imagem de Exemplo (Opcional)',
@@ -115,7 +115,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     // Customization Banner
     custom_banner_line1: 'Personaliza a tua ideia.',
     custom_banner_line2: 'Criamos peças únicas para ti.',
-    custom_banner_desc: 'Diz-nos o que tens em mente e nós transformamos em realidade com impressão 3D no nosso atelier em Guimarães.',
+    custom_banner_desc: 'Diz-nos o que tens em mente e nós transformamos em realidade com impressão 3D na nossa loja em Guimarães.',
     custom_banner_btn: 'PEDIR PERSONALIZAÇÃO',
 
     // Footer
@@ -124,7 +124,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     footer_referral_title: 'Gostas das nossas peças 3D? Recomenda a Janley Store a um amigo!',
     footer_referral_desc: 'Surpreende alguém especial com decorações, chaveiros e presentes personalizados.',
     footer_referral_btn: 'Indicar a um Amigo via WhatsApp',
-    footer_desc: 'Criatividade, precisão e design em cada detalhe. Peças exclusivas em impressão 3D fabricadas no nosso atelier com entregas para todo o território português.',
+    footer_desc: 'Criatividade, precisão e design em cada detalhe. Peças exclusivas em impressão 3D fabricadas na nossa loja com entregas para todo o território português.',
     footer_quick_links: 'Links Rápidos',
     footer_support_title: 'Apoio & Encomendas',
     footer_newsletter_title: 'Newsletter Janley',
@@ -135,6 +135,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     footer_delivery_bottom_no_ctt: 'ENVIAMOS POR UBER - RECOLHA',
     footer_payment_exclusive: 'Pagamento exclusivo:',
     footer_admin_link: '• Área Reservada (/admin)',
+    footer_privacy_notice: 'Aviso de Privacidade & Direitos de Autor: Todas as fotografias e imagens desta loja são propriedade privada da Janley Store. É estritamente proibida qualquer clonagem, download, captura de ecrã ou utilização sem autorização prévia.',
 
     // Floating Button
     floating_custom_title: 'Pedir Peça 3D',
@@ -186,7 +187,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     feature_payment_sub: 'We accept MB WAY exclusively',
 
     // Categories Section
-    categories_badge: '3D Atelier Guimarães',
+    categories_badge: 'Loja 3D Guimarães',
     categories_title: 'Shop by Category',
     cat_natal: 'Christmas',
     cat_chaveiros: 'Keychains',
@@ -212,7 +213,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     consultar_preco: 'REQUEST QUOTE',
 
     // Direct Budget Section
-    quote_badge: '3D Additive Manufacturing Atelier',
+    quote_badge: 'Loja • 3D Additive Manufacturing',
     quote_title: 'Request a Custom 3D Quote',
     quote_step1: '1. Piece Category',
     quote_step2: '2. Reference Photo (Optional)',
@@ -247,7 +248,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     // Customization Banner
     custom_banner_line1: 'Customize your idea.',
     custom_banner_line2: 'We craft unique pieces for you.',
-    custom_banner_desc: 'Tell us your vision and we bring it to reality with high-precision 3D printing at our Guimarães atelier.',
+    custom_banner_desc: 'Tell us your vision and we bring it to reality with high-precision 3D printing at our Guimarães Loja.',
     custom_banner_btn: 'REQUEST CUSTOM PIECE',
 
     // Footer
@@ -267,6 +268,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     footer_delivery_bottom_no_ctt: 'DELIVERY VIA UBER - PICKUP',
     footer_payment_exclusive: 'Exclusive payment:',
     footer_admin_link: '• Admin Portal (/admin)',
+    footer_privacy_notice: 'Privacy & Copyright Notice: All photographs and images in this store are private property of Janley Store. Cloning, downloading, screen capturing, or unauthorized use is strictly prohibited.',
 
     // Floating Button
     floating_custom_title: 'Custom 3D Order',
@@ -399,6 +401,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     footer_delivery_bottom_no_ctt: 'ENTREGAMOS POR UBER - RECOGIDA',
     footer_payment_exclusive: 'Pago exclusivo:',
     footer_admin_link: '• Área Reservada (/admin)',
+    footer_privacy_notice: 'Aviso de Privacidad y Derechos de Autor: Todas las fotografías e imágenes de esta tienda son propiedad privada de Janley Store. Se prohíbe estrictamente la clonación, descarga, captura de pantalla o uso sin autorización.',
 
     // Floating Button
     floating_custom_title: 'Pedir Pieza 3D',
@@ -443,14 +446,14 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     feature_delivery_title: 'CTT • Uber • Retrait',
     feature_delivery_sub: 'Livraison dans tout le Portugal',
     feature_local_title: 'Guimarães, Portugal 🇵🇹',
-    feature_local_sub: 'Atelier artisanal 3D local',
+    feature_local_sub: 'Boutique artisanale 3D locale',
     feature_custom_title: 'Pièces Sur Mesure',
     feature_custom_sub: 'Couleurs, noms & devis',
     feature_payment_title: 'MB WAY',
     feature_payment_sub: 'Paiement exclusif par MB WAY',
 
     // Categories Section
-    categories_badge: 'Atelier 3D Guimarães',
+    categories_badge: 'Loja 3D Guimarães',
     categories_title: 'Acheter par Catégorie',
     cat_natal: 'Noël',
     cat_chaveiros: 'Porte-clés',
@@ -476,7 +479,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     consultar_preco: 'DEMANDER UN DEVIS',
 
     // Direct Budget Section
-    quote_badge: 'Atelier de Fabrication Additive 3D',
+    quote_badge: 'Loja de Fabrication Additive 3D',
     quote_title: 'Demander un Devis Sur Mesure',
     quote_step1: '1. Catégorie de la Pièce',
     quote_step2: '2. Photo de Référence (Facultatif)',
@@ -511,7 +514,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     // Customization Banner
     custom_banner_line1: 'Personnalisez votre idée.',
     custom_banner_line2: 'Nous créons des pièces uniques pour vous.',
-    custom_banner_desc: 'Dites-nous ce que vous imaginez et nous le réalisons avec l\'impression 3D dans notre atelier à Guimarães.',
+    custom_banner_desc: 'Dites-nous ce que vous imaginez et nous le réalisons avec l\'impression 3D dans notre Loja à Guimarães.',
     custom_banner_btn: 'DEMANDER DU SUR-MESURE',
 
     // Footer
@@ -531,6 +534,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     footer_delivery_bottom_no_ctt: 'LIVRAISON PAR UBER - RETRAIT',
     footer_payment_exclusive: 'Paiement exclusif :',
     footer_admin_link: '• Espace Réservé (/admin)',
+    footer_privacy_notice: 'Avis de Confidentialité & Droits d’Auteur : Toutes les photographies et images de cette boutique sont la propriété privée de Janley Store. Tout clonage, téléchargement, capture d’écran ou utilisation non autorisée est strictement interdit.',
 
     // Floating Button
     floating_custom_title: 'Création 3D Sur Mesure',

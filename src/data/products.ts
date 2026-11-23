@@ -203,6 +203,120 @@ export function getProductImageForColor(product: Product, color?: ProductColor):
   return color.sampleImage;
 }
 
+export const UNDER_5_PACK_QUANTITIES = [3, 5, 10, 15, 25, 30, 40, 50] as const;
+
+export function isUnder5PackProduct(product: Pick<Product, 'price'>): boolean {
+  return Number(product.price) > 0 && Number(product.price) < 5;
+}
+
+export function isKeychainProduct(product: Pick<Product, 'categoryId' | 'id' | 'name'>): boolean {
+  return (
+    product.categoryId === 'chaveiros' ||
+    product.id.toLowerCase().includes('chaveiro') ||
+    product.name.toLowerCase().includes('chaveiro')
+  );
+}
+
+export function isValidPackQuantity(product: Product, quantity: number): boolean {
+  if (!Number.isInteger(quantity) || quantity <= 0) return false;
+  if (isUnder5PackProduct(product)) {
+    return (
+      (UNDER_5_PACK_QUANTITIES as readonly number[]).includes(quantity) ||
+      quantity > 50
+    );
+  }
+  return true;
+}
+
+export interface ProductPricingResult {
+  unitBasePrice: number;
+  unitFinalPrice: number;
+  perUnitDiscount: number;
+  discountPercent: number;
+  discountLabel: string | null;
+  lineTotal: number;
+  lineSavings: number;
+}
+
+export function calculateProductPricing(product: Product, quantity: number): ProductPricingResult {
+  const basePrice = Math.max(0, Number(product.price) || 0);
+  if (basePrice <= 0 || quantity <= 0) {
+    return {
+      unitBasePrice: basePrice,
+      unitFinalPrice: basePrice,
+      perUnitDiscount: 0,
+      discountPercent: 0,
+      discountLabel: null,
+      lineTotal: 0,
+      lineSavings: 0,
+    };
+  }
+
+  // Products under €5: pack-only ordering with automatic per-unit discount from 25+ units
+  if (isUnder5PackProduct(product)) {
+    let rawPerUnitOff = 0;
+    if (quantity >= 100) rawPerUnitOff = 0.75;
+    else if (quantity >= 50) rawPerUnitOff = 0.50;
+    else if (quantity >= 40) rawPerUnitOff = 0.40;
+    else if (quantity >= 30) rawPerUnitOff = 0.30;
+    else if (quantity >= 25) rawPerUnitOff = 0.25;
+
+    // Cap per-unit discount safely at 45% for ultra-low base prices so price stays realistic
+    const perUnitDiscount = Math.min(rawPerUnitOff, Number((basePrice * 0.45).toFixed(2)));
+    const unitFinalPrice = Math.max(0.1, Number((basePrice - perUnitDiscount).toFixed(2)));
+    const lineTotal = Number((unitFinalPrice * quantity).toFixed(2));
+    const lineSavings = Number(Math.max(0, basePrice * quantity - lineTotal).toFixed(2));
+    const discountPercent = basePrice > 0 ? Math.round((perUnitDiscount / basePrice) * 100) : 0;
+
+    return {
+      unitBasePrice: basePrice,
+      unitFinalPrice,
+      perUnitDiscount,
+      discountPercent,
+      discountLabel: perUnitDiscount > 0 ? `-€ ${perUnitDiscount.toFixed(2).replace('.', ',')}/un` : null,
+      lineTotal,
+      lineSavings,
+    };
+  }
+
+  // Keychains >= €5: percentage batch discount (5 / 10 / 30 / 50 / 100+)
+  if (isKeychainProduct(product)) {
+    let discountMultiplier = 1.0;
+    if (quantity >= 100) discountMultiplier = 0.75;
+    else if (quantity >= 50) discountMultiplier = 0.80;
+    else if (quantity >= 30) discountMultiplier = 0.85;
+    else if (quantity >= 10) discountMultiplier = 0.90;
+    else if (quantity >= 5) discountMultiplier = 0.95;
+
+    const unitFinalPrice = Number((basePrice * discountMultiplier).toFixed(2));
+    const lineTotal = Number((basePrice * quantity * discountMultiplier).toFixed(2));
+    const lineSavings = Number(Math.max(0, basePrice * quantity - lineTotal).toFixed(2));
+    const discountPercent = Math.round((1 - discountMultiplier) * 100);
+
+    return {
+      unitBasePrice: basePrice,
+      unitFinalPrice,
+      perUnitDiscount: Number((basePrice - unitFinalPrice).toFixed(2)),
+      discountPercent,
+      discountLabel: discountPercent > 0 ? `-${discountPercent}%` : null,
+      lineTotal,
+      lineSavings,
+    };
+  }
+
+  // Standard products >= €5
+  const lineTotal = Number((basePrice * quantity).toFixed(2));
+  return {
+    unitBasePrice: basePrice,
+    unitFinalPrice: basePrice,
+    perUnitDiscount: 0,
+    discountPercent: 0,
+    discountLabel: null,
+    lineTotal,
+    lineSavings: 0,
+  };
+}
+
 export const PRODUCTS: Product[] = [
   {
     id: 'suporte-telemovel',
@@ -235,6 +349,7 @@ export const PRODUCTS: Product[] = [
     material: 'PLA de Alta Densidade e Argola de Aço Inox Dourada',
     isFeatured: true,
     isBestseller: true,
+    allowCustomName: true,
   },
   {
     id: 'organizador-mesa',
@@ -315,6 +430,7 @@ export const PRODUCTS: Product[] = [
     material: 'PLA Premium em dupla camada',
     isFeatured: false,
     isBestseller: true,
+    allowCustomName: true,
   },
   {
     id: 'capa-telemovel-escultural',

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight, Tag, Truck, CheckCircle2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { getProductImageForColor } from '../data/products';
+import { getProductImageForColor, calculateProductPricing } from '../data/products';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 
 interface CartDrawerProps {
@@ -155,7 +155,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) =
                 </button>
               </div>
             ) : (
-              items.map((item) => (
+              items.map((item) => {
+                const pricing = calculateProductPricing(item.product, item.quantity);
+                return (
                 <div
                   key={item.id}
                   className="flex gap-3.5 p-3 rounded-xl border border-[#fae5e2] bg-[#fffdfd] hover:border-[#fcd7df] transition-colors shadow-2xs"
@@ -211,7 +213,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) =
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="w-7 text-center text-xs font-bold text-[#33221e]">
+                        <span className="min-w-7 px-1 text-center text-xs font-bold text-[#33221e]">
                           {item.quantity}
                         </span>
                         <button
@@ -226,19 +228,25 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) =
                       <div className="text-right">
                         <span className="text-sm font-bold text-[#33221e]">
                           {item.product.price > 0
-                            ? `€ ${(item.product.price * item.quantity).toFixed(2).replace('.', ',')}`
+                            ? `€ ${pricing.lineTotal.toFixed(2).replace('.', ',')}`
                             : 'Sob consulta'}
                         </span>
                         {item.product.price > 0 && item.quantity > 1 && (
                           <div className="text-[10px] text-[#8c6760]">
-                            € {item.product.price.toFixed(2).replace('.', ',')} cada
+                            € {pricing.unitFinalPrice.toFixed(2).replace('.', ',')} cada
+                            {pricing.discountLabel && (
+                              <span className="text-emerald-700 font-semibold ml-1">
+                                ({pricing.discountLabel})
+                              </span>
+                            )}
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
 
@@ -344,9 +352,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) =
                     `Olá Janley Store! Gostaria de encomendar os seguintes artigos:\n${items
                       .map(
                         (i) =>
-                          `- ${i.quantity}x ${i.product.name} (Cor: ${i.selectedColor.name}) = €${(
-                            i.product.price * i.quantity
-                          ).toFixed(2)}`
+                          `- ${i.quantity}x ${i.product.name} (Cor: ${i.selectedColor.name}) = €${calculateProductPricing(
+                            i.product,
+                            i.quantity
+                          ).lineTotal.toFixed(2)}`
                       )
                       .join('\n')}\n\nTotal estimado: €${total.toFixed(2)}`
                   )}`}

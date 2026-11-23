@@ -29,7 +29,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { PRODUCTS } from './data/products';
 import { getPublicProducts } from './lib/supabase';
 import { Product } from './types';
-import { CheckCircle2, Sparkles } from 'lucide-react';
+import { CheckCircle2, Sparkles, ShieldAlert, Gift, X } from 'lucide-react';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('inicio');
@@ -79,6 +79,148 @@ function AppContent() {
   const { notification, clearNotification } = useCart();
   const { t } = useLanguage();
 
+  // Storefront image privacy protection (blocks download, drag, context menu & blurs on capture attempts)
+  const [privacyShieldActive, setPrivacyShieldActive] = useState(false);
+  const [privacyNotice, setPrivacyNotice] = useState<string | null>(null);
+
+  // Automatic on-site invitation notification for logged-in / registered visitors
+  const [customerInviteBanner, setCustomerInviteBanner] = useState<{ email: string; name: string } | null>(null);
+
+  useEffect(() => {
+    if (isAdminRoute) return;
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const scheduleInviteBanner = () => {
+      if (timer) clearTimeout(timer);
+
+      const clientEmail = localStorage.getItem('janley_client_email') || '';
+      const clientName = localStorage.getItem('janley_client_name') || '';
+      const hasConverted = localStorage.getItem('janley_customer_converted') === 'true';
+      const dismissed = sessionStorage.getItem('janley_invite_dismissed') === '1';
+
+      if (!clientEmail || hasConverted || dismissed) {
+        setCustomerInviteBanner(null);
+        return;
+      }
+
+      timer = setTimeout(() => {
+        setCustomerInviteBanner({ email: clientEmail, name: clientName });
+      }, 12000);
+    };
+
+    scheduleInviteBanner();
+    window.addEventListener('janley:customer-auth', scheduleInviteBanner);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      window.removeEventListener('janley:customer-auth', scheduleInviteBanner);
+    };
+  }, [isAdminRoute]);
+
+  const dismissInviteBanner = () => {
+    sessionStorage.setItem('janley_invite_dismissed', '1');
+    setCustomerInviteBanner(null);
+  };
+
+  useEffect(() => {
+    if (isAdminRoute) return;
+
+    let shieldTimer: ReturnType<typeof setTimeout> | null = null;
+    let noticeTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const triggerPrivacyShield = (blurScreen: boolean) => {
+      if (blurScreen) {
+        setPrivacyShieldActive(true);
+        if (shieldTimer) clearTimeout(shieldTimer);
+        shieldTimer = setTimeout(() => setPrivacyShieldActive(false), 3000);
+      }
+      setPrivacyNotice(
+        'Imagens privadas da Janley Store — download, clonagem ou captura de ecrã não são permitidos.'
+      );
+      if (noticeTimer) clearTimeout(noticeTimer);
+      noticeTimer = setTimeout(() => setPrivacyNotice(null), 4000);
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'IMG' || target.closest('img'))) {
+        e.preventDefault();
+        triggerPrivacyShield(false);
+      }
+    };
+
+    const handleDragStart = (e: DragEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && target.tagName === 'IMG') {
+        e.preventDefault();
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isTyping =
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable);
+
+      const keyLower = (e.key || '').toLowerCase();
+      const isPrintScreen = e.key === 'PrintScreen';
+      const isSaveOrPrint =
+        (e.ctrlKey || e.metaKey) && (keyLower === 's' || keyLower === 'p' || keyLower === 'u');
+      const isCaptureShortcut =
+        (e.ctrlKey || e.metaKey) &&
+        e.shiftKey &&
+        (keyLower === 's' || keyLower === '3' || keyLower === '4' || keyLower === '5');
+
+      if (isPrintScreen || isCaptureShortcut || (!isTyping && isSaveOrPrint)) {
+        e.preventDefault();
+        triggerPrivacyShield(true);
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText('').catch(() => {});
+          }
+        } catch {
+          // Ignore clipboard permission errors
+        }
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'PrintScreen') {
+        triggerPrivacyShield(true);
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText('').catch(() => {});
+          }
+        } catch {
+          // Ignore clipboard permission errors
+        }
+      }
+    };
+
+    const handleBeforePrint = () => {
+      triggerPrivacyShield(true);
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('dragstart', handleDragStart);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('beforeprint', handleBeforePrint);
+
+    return () => {
+      if (shieldTimer) clearTimeout(shieldTimer);
+      if (noticeTimer) clearTimeout(noticeTimer);
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('dragstart', handleDragStart);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('beforeprint', handleBeforePrint);
+    };
+  }, [isAdminRoute]);
+
   // Scroll smoothly to products section
   const handleExploreProducts = () => {
     setActiveTab('loja');
@@ -118,7 +260,11 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-[#3d2314] antialiased selection:bg-[#f59e0b]/25 selection:text-[#78350f]">
+    <div
+      className={`min-h-screen flex flex-col bg-white text-[#3d2314] antialiased selection:bg-[#f59e0b]/25 selection:text-[#78350f] storefront-protected ${
+        privacyShieldActive ? 'privacy-shield-active' : ''
+      }`}
+    >
       {/* 1. Top Announcement Bar */}
       <TopBar
         onOpenContact={() => setContactModalOpen(true)}
@@ -260,6 +406,71 @@ function AppContent() {
         >
           <CheckCircle2 className="w-4 h-4 text-[#f59e0b]" />
           <span>{notification}</span>
+        </div>
+      )}
+
+      {/* Privacy & Anti-Cloning Protection Alert */}
+      {privacyNotice && (
+        <div
+          onClick={() => setPrivacyNotice(null)}
+          className="fixed top-5 left-1/2 -translate-x-1/2 z-[70] bg-[#2b170c] text-white text-xs sm:text-sm font-semibold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 border border-[#d97706] max-w-md w-[92%] cursor-pointer"
+        >
+          <ShieldAlert className="w-5 h-5 text-[#f59e0b] shrink-0" />
+          <span>{privacyNotice}</span>
+        </div>
+      )}
+
+      {/* Automatic On-Site Re-Engagement Notification for Logged-In Visitors */}
+      {customerInviteBanner && (
+        <div className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-40 max-w-xs w-[calc(100%-5.5rem)] sm:w-80 bg-white rounded-2xl shadow-2xl border border-[#fbd9ce] p-4 animate-in slide-in-from-bottom-4 duration-300">
+          <button
+            type="button"
+            onClick={dismissInviteBanner}
+            aria-label="Fechar convite"
+            className="absolute top-2.5 right-2.5 p-1 text-[#8c6760] hover:text-[#d97706] hover:bg-[#fef4f0] rounded-full transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          <div className="flex items-start gap-3 pr-5">
+            <div className="w-9 h-9 rounded-xl bg-[#fef3c7] text-[#d97706] flex items-center justify-center shrink-0">
+              <Gift className="w-5 h-5" />
+            </div>
+            <div className="space-y-1.5">
+              <div className="text-xs font-bold text-[#3d2314]">
+                Olá {customerInviteBanner.name || customerInviteBanner.email.split('@')[0]}! Oferta especial 3D
+              </div>
+              <p className="text-[11px] text-[#5c3a1e] leading-relaxed">
+                Obrigado pelo teu registo na <strong>Janley Store</strong>! Usa o cupão{' '}
+                <strong className="text-[#d97706] bg-[#fef8ed] px-1.5 py-0.5 rounded border border-[#fed7aa]">
+                  JANLEY10
+                </strong>{' '}
+                para <strong>10% de desconto</strong> na tua peça personalizada.
+              </p>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    dismissInviteBanner();
+                    handleExploreProducts();
+                  }}
+                  className="bg-[#d97706] hover:bg-[#b45309] text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                >
+                  Ver Novidades 3D
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    dismissInviteBanner();
+                    setCustomModalOpen(true);
+                  }}
+                  className="bg-[#faf4f2] hover:bg-[#fdedea] text-[#3d2314] border border-[#fae2dc] text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                >
+                  Pedir Personalizado
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

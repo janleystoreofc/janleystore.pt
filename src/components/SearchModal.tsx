@@ -78,10 +78,12 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSel
                     </h4>
                     <span className="text-xs text-[#8c6760]">{prod.category}</span>
                     <div className="text-xs font-bold text-[#f43f7a] mt-0.5">
-                      {prod.price > 0 ? `€ ${prod.price.toFixed(2).replace('.', ',')}` : 'Sob consulta'}
+                      {prod.price > 0
+                        ? `€ ${prod.price.toFixed(2).replace('.', ',')}${prod.price < 5 ? ' · Packs desde 3 un' : ''}`
+                        : 'Sob consulta'}
                     </div>
                   </div>
-                  {prod.price > 0 ? (
+                  {prod.price >= 5 ? (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

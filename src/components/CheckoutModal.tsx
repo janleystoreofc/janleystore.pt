@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, ShieldCheck, Truck, ArrowLeft, ArrowRight, CreditCard, Smartphone, Building2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
+import { recordCustomerLeadEvent, upsertTrackedOrder, getStorePickupSettings } from '../lib/supabase';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -58,12 +59,48 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         return;
       }
     }
+    if (formData.email.trim()) {
+      void recordCustomerLeadEvent({
+        email: formData.email.trim(),
+        name: formData.nome.trim(),
+        source: 'checkout',
+      });
+    }
     setStep('payment');
   };
 
   const handleFinalizeOrder = () => {
     const randomOrder = 'JNLY-' + Math.floor(100000 + Math.random() * 900000);
+    const firstItem = items[0];
+    const summaryName =
+      items.length > 1
+        ? `${firstItem?.product.name || 'Peça 3D'} (+${items.length - 1})`
+        : firstItem?.product.name || 'Peça 3D Janley Store';
+
+    const saveOrder = async () => {
+      const pickupSettings = deliveryMethod === 'recolha' ? await getStorePickupSettings() : null;
+      await upsertTrackedOrder({
+        order_number: randomOrder,
+        delivery_method: deliveryMethod,
+        client_name: formData.nome.trim() || 'Cliente Janley Store',
+        destination:
+          deliveryMethod === 'recolha'
+            ? 'Guimarães (Recolha na Loja)'
+            : `${formData.cidade || 'Portugal'}`,
+        product_name: summaryName,
+        product_image: firstItem?.product.image || '/images/prod_suporte_telemovel.png',
+        color_name: firstItem?.selectedColor?.name || 'Dourado',
+        color_hex: firstItem?.selectedColor?.hex || '#d97706',
+        stage: 'Queued',
+        pickup_address: pickupSettings?.address || '',
+        pickup_note: pickupSettings?.note || '',
+      });
+    };
+    void saveOrder();
+
     setOrderNumber(randomOrder);
+    localStorage.setItem('janley_customer_converted', 'true');
+    window.dispatchEvent(new CustomEvent('janley:customer-auth'));
     setStep('confirmation');
     clearCart();
   };
@@ -113,9 +150,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                 </h3>
                 <p className="text-xs text-[#735953] mt-1">
                   {cttEnabled ? (
-                    <>Atelier sediado em <strong>Guimarães, Braga - Portugal</strong> 🇵🇹 com envio para Portugal inteiro.</>
+                    <>Loja sediada em <strong>Guimarães, Braga - Portugal</strong> 🇵🇹 com envio para Portugal inteiro.</>
                   ) : (
-                    <>Atelier sediado em <strong>Guimarães, Braga - Portugal</strong> 🇵🇹 • Entregas disponíveis por <strong>Uber Flash</strong> ou <strong>Recolha no Atelier</strong>.</>
+                    <>Loja sediada em <strong>Guimarães, Braga - Portugal</strong> 🇵🇹 • Entregas disponíveis por <strong>Uber Flash</strong> ou <strong>Recolha na Loja</strong>.</>
                   )}
                 </p>
               </div>
@@ -175,7 +212,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                   >
                     <div className="flex items-center gap-1.5 font-bold text-xs text-[#33221e]">
                       <Building2 className="w-3.5 h-3.5 text-[#f43f7a]" />
-                      <span>Recolha no Atelier</span>
+                      <span>Recolha na Loja</span>
                     </div>
                     <p className="text-[10px] text-[#735953] mt-0.5">
                       Guimarães, Braga (Grátis)
@@ -413,7 +450,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                 <div className="flex justify-between">
                   <span className="text-[#735953]">Entrega:</span>
                   <span className="text-[#33221e] font-semibold">
-                    {deliveryMethod === 'recolha' ? 'Recolha no Atelier (Guimarães)' : deliveryMethod === 'uber' ? 'Uber Flash (Local)' : 'CTT Expresso (Portugal)'}
+                    {deliveryMethod === 'recolha' ? 'Recolha na Loja (Guimarães)' : deliveryMethod === 'uber' ? 'Uber Flash (Local)' : 'CTT Expresso (Portugal)'}
                   </span>
                 </div>
                 {deliveryMethod !== 'recolha' && formData.morada && (
