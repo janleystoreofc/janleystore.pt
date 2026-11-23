@@ -78,19 +78,25 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSel
                     </h4>
                     <span className="text-xs text-[#8c6760]">{prod.category}</span>
                     <div className="text-xs font-bold text-[#f43f7a] mt-0.5">
-                      € {prod.price.toFixed(2).replace('.', ',')}
+                      {prod.price > 0 ? `€ ${prod.price.toFixed(2).replace('.', ',')}` : 'Sob consulta'}
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      addToCart(prod, prod.colors[0], 1);
-                    }}
-                    className="p-2 rounded-lg bg-[#fdedea] text-[#f43f7a] hover:bg-[#f43f7a] hover:text-white transition-colors cursor-pointer"
-                    title="Adicionar ao carrinho"
-                  >
-                    <ShoppingBag className="w-4 h-4" />
-                  </button>
+                  {prod.price > 0 ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(prod, prod.colors[0], 1);
+                      }}
+                      className="p-2 rounded-lg bg-[#fdedea] text-[#f43f7a] hover:bg-[#f43f7a] hover:text-white transition-colors cursor-pointer"
+                      title="Adicionar ao carrinho"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <span className="p-2 rounded-lg bg-[#fef3c7] text-[#b45309]">
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
+                  )}
                 </div>
               ))
             )}

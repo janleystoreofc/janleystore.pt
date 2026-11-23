@@ -113,9 +113,15 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                     </span>
                   </div>
 
-                  {/* Price */}
+                  {/* Price or Sob consulta */}
                   <div className="text-xs sm:text-base md:text-lg font-bold text-[#2b170c] mt-0.5 sm:mt-1">
-                    € {product.price.toFixed(2).replace('.', ',')}
+                    {product.price > 0 ? (
+                      `€ ${product.price.toFixed(2).replace('.', ',')}`
+                    ) : (
+                      <span className="text-xs sm:text-sm font-semibold text-[#b45309]">
+                        {t('sob_consulta')}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -165,7 +171,7 @@ export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
                     className="w-full bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#b45309] hover:to-[#92400e] text-white font-bold text-[10px] sm:text-xs tracking-wider uppercase py-2 px-2 sm:py-2.5 sm:px-3 rounded-lg shadow-2xs hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer active:scale-98"
                   >
                     <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.2]" />
-                    <span>{t('adicionar')}</span>
+                    <span>{product.price > 0 ? t('adicionar') : t('consultar_preco')}</span>
                   </button>
                 </div>
               </div>

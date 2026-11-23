@@ -225,9 +225,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) =
 
                       <div className="text-right">
                         <span className="text-sm font-bold text-[#33221e]">
-                          € {(item.product.price * item.quantity).toFixed(2).replace('.', ',')}
+                          {item.product.price > 0
+                            ? `€ ${(item.product.price * item.quantity).toFixed(2).replace('.', ',')}`
+                            : 'Sob consulta'}
                         </span>
-                        {item.quantity > 1 && (
+                        {item.product.price > 0 && item.quantity > 1 && (
                           <div className="text-[10px] text-[#8c6760]">
                             € {item.product.price.toFixed(2).replace('.', ',')} cada
                           </div>

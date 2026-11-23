@@ -246,15 +246,22 @@ export const CustomerProfileModal: React.FC<CustomerProfileModalProps> = ({
                         </h4>
                         <div className="text-[11px] text-[#735953] truncate">{prod.category}</div>
                         <div className="text-xs font-bold text-[#33221e] mt-1">
-                          € {prod.price.toFixed(2).replace('.', ',')}
+                          {prod.price > 0 ? `€ ${prod.price.toFixed(2).replace('.', ',')}` : 'Sob consulta'}
                         </div>
                       </div>
 
                       <div className="flex flex-col gap-1.5">
                         <button
-                          onClick={() => addToCart(prod, prod.colors[0], 1)}
+                          onClick={() => {
+                            if (prod.price > 0) {
+                              addToCart(prod, prod.colors[0], 1);
+                            } else {
+                              onClose();
+                              onViewProductDetail(prod);
+                            }
+                          }}
                           className="p-2 bg-[#d97706] hover:bg-[#e11d48] text-white rounded-lg shadow-2xs transition-all cursor-pointer"
-                          title="Adicionar ao Carrinho"
+                          title={prod.price > 0 ? 'Adicionar ao Carrinho' : 'Consultar Preço'}
                         >
                           <ShoppingBag className="w-3.5 h-3.5" />
                         </button>

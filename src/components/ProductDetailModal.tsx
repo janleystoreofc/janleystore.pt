@@ -54,7 +54,18 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
     return product.price * quantity;
   };
 
+  const isQuoteOnly = product.price <= 0;
   const totalPrice = calculateTotalPrice();
+
+  const whatsappQuoteMessage = encodeURIComponent(
+    `Olá Janley Store! Gostaria de consultar o preço e disponibilidade do seguinte artigo:\n` +
+      `• Produto: ${product.name}\n` +
+      `• Categoria: ${product.category}\n` +
+      `• Cor escolhida: ${selectedColor.name}\n` +
+      `• Quantidade: ${quantity} un` +
+      (customText.trim() ? `\n• Personalização / Detalhes: ${customText.trim()}` : '')
+  );
+  const whatsappQuoteUrl = `https://wa.me/351935742686?text=${whatsappQuoteMessage}`;
 
   const handleAddToCart = () => {
     addToCart(product, selectedColor, quantity, customText.trim() ? customText.trim() : undefined);
@@ -130,13 +141,24 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                   </span>
                 </div>
 
-                {/* Price */}
-                <div className="text-2xl font-bold text-[#3d2314] mt-3 flex items-baseline gap-2">
-                  <span>€ {totalPrice.toFixed(2).replace('.', ',')}</span>
-                  {quantity > 1 && (
-                    <span className="text-xs text-[#78350f] font-medium">
-                      ({quantity} un • € {(totalPrice / quantity).toFixed(2).replace('.', ',')}/un)
-                    </span>
+                {/* Price or Quote Only */}
+                <div className="text-2xl font-bold text-[#3d2314] mt-3 flex flex-wrap items-baseline gap-2">
+                  {isQuoteOnly ? (
+                    <>
+                      <span className="text-xl sm:text-2xl text-[#b45309]">Sob Consulta</span>
+                      <span className="text-xs text-[#78350f] font-medium">
+                        (Valor orçamentado consoante cor, quantidade e medidas)
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span>€ {totalPrice.toFixed(2).replace('.', ',')}</span>
+                      {quantity > 1 && (
+                        <span className="text-xs text-[#78350f] font-medium">
+                          ({quantity} un • € {(totalPrice / quantity).toFixed(2).replace('.', ',')}/un)
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -181,18 +203,20 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                 </div>
               </div>
 
-              {/* Optional Custom Text for Personalized Items */}
-              {product.categoryId === 'personalizados' && (
+              {/* Optional Custom Text for Personalized Items or Quote Requests */}
+              {(product.categoryId === 'personalizados' || isQuoteOnly) && (
                 <div>
                   <label className="block text-xs font-bold text-[#3d2314] mb-1">
-                    Nome ou Iniciais para Gravação 3D (Opcional):
+                    {isQuoteOnly
+                      ? 'Medidas, Nome ou Detalhes para Orçamento (Opcional):'
+                      : 'Nome ou Iniciais para Gravação 3D (Opcional):'}
                   </label>
                   <input
                     type="text"
                     value={customText}
                     onChange={(e) => setCustomText(e.target.value)}
-                    placeholder="Ex: Sofia, Lucas, M&J"
-                    maxLength={20}
+                    placeholder={isQuoteOnly ? 'Ex: Aprox. 15 cm, nome Lucas...' : 'Ex: Sofia, Lucas, M&J'}
+                    maxLength={80}
                     className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] focus:bg-white rounded-xl px-3.5 py-2 text-sm outline-hidden"
                   />
                 </div>
@@ -204,9 +228,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-[#3d2314]">Quantidade de Chaveiros:</span>
-                      <span className="text-xs font-bold text-[#008f51]">
-                        {quantity >= 100 ? '-25% Desc. Especial' : quantity >= 50 ? '-20% Desc.' : quantity >= 30 ? '-15% Desc.' : quantity >= 10 ? '-10% Desc.' : '-5% Pack'}
-                      </span>
+                      {!isQuoteOnly && (
+                        <span className="text-xs font-bold text-[#008f51]">
+                          {quantity >= 100 ? '-25% Desc. Especial' : quantity >= 50 ? '-20% Desc.' : quantity >= 30 ? '-15% Desc.' : quantity >= 10 ? '-10% Desc.' : '-5% Pack'}
+                        </span>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-5 gap-1.5">
@@ -258,14 +284,28 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
               {/* CTA Button */}
               <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  className="w-full bg-[#d97706] hover:bg-[#b45309] text-white font-bold text-xs uppercase tracking-wider py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-                >
-                  <ShoppingBag className="w-4 h-4 stroke-[2.2]" />
-                  <span>Adicionar ao Carrinho • € {totalPrice.toFixed(2).replace('.', ',')}</span>
-                </button>
+                {isQuoteOnly ? (
+                  <a
+                    href={whatsappQuoteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#25D366] hover:bg-[#1ebe5a] text-white font-bold text-xs uppercase tracking-wider py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                  >
+                    <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                      <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19.01L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z" />
+                    </svg>
+                    <span>Consultar Preço por WhatsApp</span>
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleAddToCart}
+                    className="w-full bg-[#d97706] hover:bg-[#b45309] text-white font-bold text-xs uppercase tracking-wider py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                  >
+                    <ShoppingBag className="w-4 h-4 stroke-[2.2]" />
+                    <span>Adicionar ao Carrinho • € {totalPrice.toFixed(2).replace('.', ',')}</span>
+                  </button>
+                )}
               </div>
 
               {/* Specs bullet points */}

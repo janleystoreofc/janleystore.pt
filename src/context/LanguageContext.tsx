@@ -76,6 +76,8 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     colors_count: 'cores',
     btn_customize: 'PERSONALIZAR',
     btn_view_options: 'VER OPÇÕES',
+    sob_consulta: 'Sob consulta',
+    consultar_preco: 'CONSULTAR PREÇO',
 
     // Direct Budget Section
     quote_badge: 'Atelier de Fabrico Aditivo 3D',
@@ -206,6 +208,8 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     colors_count: 'colors',
     btn_customize: 'CUSTOMIZE',
     btn_view_options: 'VIEW OPTIONS',
+    sob_consulta: 'Price on request',
+    consultar_preco: 'REQUEST QUOTE',
 
     // Direct Budget Section
     quote_badge: '3D Additive Manufacturing Atelier',
@@ -336,6 +340,8 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     colors_count: 'colores',
     btn_customize: 'PERSONALIZAR',
     btn_view_options: 'VER OPCIONES',
+    sob_consulta: 'Bajo consulta',
+    consultar_preco: 'CONSULTAR PRECIO',
 
     // Direct Budget Section
     quote_badge: 'Taller de Fabricación Aditiva 3D',
@@ -466,6 +472,8 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     colors_count: 'couleurs',
     btn_customize: 'PERSONNALISER',
     btn_view_options: 'VOIR OPTIONS',
+    sob_consulta: 'Sur devis',
+    consultar_preco: 'DEMANDER UN DEVIS',
 
     // Direct Budget Section
     quote_badge: 'Atelier de Fabrication Additive 3D',

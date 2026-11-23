@@ -222,7 +222,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
     setEditingProduct(prod);
     setFormData({
       name: prod.name,
-      price: String(prod.price),
+      price: Number(prod.price) > 0 ? String(prod.price) : '',
       category: prod.category,
       categoryId: prod.category_id || 'outros',
       description: prod.description || '',
@@ -363,10 +363,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
       showToast('error', 'O nome do produto é obrigatório.');
       return;
     }
-    const numPrice = parseFloat(formData.price.replace(',', '.'));
-    if (isNaN(numPrice) || numPrice <= 0) {
-      showToast('error', 'Insere um preço em euros válido.');
-      return;
+    const trimmedPrice = formData.price.trim();
+    let numPrice = 0;
+    if (trimmedPrice !== '') {
+      numPrice = parseFloat(trimmedPrice.replace(',', '.'));
+      if (isNaN(numPrice) || numPrice < 0) {
+        showToast('error', 'Insere um preço em euros válido ou deixa vazio para "Sob Consulta".');
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -1041,9 +1045,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                               </span>
                             </td>
 
-                            {/* Price in Euros */}
+                            {/* Price in Euros or Sob Consulta */}
                             <td className="py-3 px-4 font-bold text-sm text-[#33221e]">
-                              € {Number(prod.price).toFixed(2).replace('.', ',')}
+                              {Number(prod.price) > 0 ? (
+                                `€ ${Number(prod.price).toFixed(2).replace('.', ',')}`
+                              ) : (
+                                <span className="text-xs font-semibold text-[#b45309]">
+                                  Sob Consulta
+                                </span>
+                              )}
                             </td>
 
                             {/* Visibility Badge */}
@@ -1212,17 +1222,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToShop }) => {
                     />
                   </div>
 
-                  {/* Price */}
+                  {/* Price (Optional — leave blank for 'Sob Consulta') */}
                   <div>
-                    <label className="block text-xs font-bold text-[#33221e] mb-1">Preço em Euros (€) *</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-[#33221e]">
+                        Preço em Euros (€) <span className="font-normal text-[#735953]">(Opcional)</span>
+                      </label>
+                      {formData.price.trim() !== '' && (
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, price: '' })}
+                          className="text-[11px] font-semibold text-[#b45309] hover:underline cursor-pointer"
+                        >
+                          Limpar (Sob Consulta)
+                        </button>
+                      )}
+                    </div>
                     <input
                       type="text"
-                      required
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      placeholder="Ex: 14.90"
-                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2 text-sm outline-hidden font-bold"
+                      placeholder="Ex: 14.90 (ou vazio = Sob Consulta)"
+                      className="w-full bg-[#faf7f5] border border-[#d8c2bd] focus:border-[#d97706] rounded-xl px-3.5 py-2 text-sm outline-hidden font-bold placeholder:font-normal"
                     />
+                    <p className="text-[10px] text-[#735953] mt-1">
+                      Deixa vazio para artigos vendidos apenas por orçamento / consulta.
+                    </p>
                   </div>
 
                   {/* Category */}
