@@ -1,5 +1,4 @@
 import { Category, Product, ProductColor } from '../types';
-import catHomemMulherImg from '../assets/images/cat_homem_mulher_1795371081490.jpg';
 
 export const CATEGORIES: Category[] = [
   {
@@ -37,12 +36,6 @@ export const CATEGORIES: Category[] = [
     name: 'Infantil',
     image: '/assets/aistudio/Drag_o_Arco-_ris_em_Espiral_793e526b.png',
     description: 'Luminárias de quarto, puxadores temáticos e brinquedos didáticos seguros.',
-  },
-  {
-    id: 'homem-mulher',
-    name: 'Homem - Mulher',
-    image: catHomemMulherImg,
-    description: 'Acessórios pessoais, suportes de relógio, organizadores de joias, maquilhagem e presentes para ele e para ela.',
   },
   {
     id: 'organizacao',

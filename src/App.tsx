@@ -25,7 +25,6 @@ import { ContactModal } from './components/ContactModal';
 import { OrderTrackingModal } from './components/OrderTrackingModal';
 import { CustomerProfileModal } from './components/CustomerProfileModal';
 import { BudgetQuoteSection } from './components/BudgetQuoteSection';
-import { CustomerSuggestionSection } from './components/CustomerSuggestionSection';
 import { AdminPanel } from './components/AdminPanel';
 import { PRODUCTS } from './data/products';
 import { getPublicProducts } from './lib/supabase';
@@ -169,9 +168,6 @@ function AppContent() {
 
         {/* 7. Aba de Orçamento Direto 3D via WhatsApp com Amostra e Quantidade */}
         <BudgetQuoteSection onBackToShop={handleExploreProducts} />
-
-        {/* 8. Aba de Sugestão Livre de Produtos para Adicionar à Loja */}
-        <CustomerSuggestionSection />
       </main>
 
       {/* 9. Footer with Refer-a-friend WhatsApp button and MB WAY notice */}
